@@ -325,7 +325,6 @@ function updateDependentSelects(e, multi){
     } else {
         objectId = $(e.target).attr('i-orig');
     }
-    // console.log($(e.target).prev().find('span').toArray().map(v => $(v).attr('ref')))
     // получили objectId выбранного значения в родительской таблице
     let selectedIds;
     if (typeof e === 'number' || typeof e === 'string') {
@@ -362,7 +361,7 @@ function updateDependentSelects(e, multi){
                     allowClear: true
                 })
             })
-            .fail(err => consol.log(err));
+            .fail(err => console.log(err));
     });
 }
 function createDicObj(json,el){

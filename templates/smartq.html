@@ -60,6 +60,9 @@ tr.no-padding input{
 <center>
 <h3>
     <span class="ajax-wait" style="display:none"><img src="/i/ajax.gif"></span>&nbsp;<span class="rep-header"></span>
+    <a href="/{_global_.z}/smartq/{_global_.id}" class="ml-2 clear-filters" style="display: none;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <path d="M25 25L19.6833 19.6833M22.5555 12.7777C22.5555 18.1778 18.1778 22.5555 12.7777 22.5555C7.37764 22.5555 3 18.1778 3 12.7777C3 7.37764 7.37764 3 12.7777 3C18.1778 3 22.5555 7.37764 22.5555 12.7777Z" stroke="#1A1A1A" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M8 8L18 18M18 8L8 18" stroke="#1A1A1A" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     <a onclick="$('.refr').toggle();doApplyFilters()"><svg class="ml-2 refr" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M25 5.99763V11.9976M25 11.9976H19M25 11.9976L20.36 7.63763C19.2853 6.56235 17.9556 5.77684 16.4952 5.35441C15.0348 4.93198 13.4911 4.88639 12.0083 5.22189C10.5255 5.5574 9.1518 6.26307 8.01547 7.27305C6.87913 8.28304 6.01717 9.56442 5.51 10.9976M3 21.9976V15.9976M3 15.9976H9M3 15.9976L7.64 20.3576C8.71475 21.4329 10.0444 22.2184 11.5048 22.6409C12.9652 23.0633 14.5089 23.1089 15.9917 22.7734C17.4745 22.4379 18.8482 21.7322 19.9845 20.7222C21.1209 19.7122 21.9828 18.4308 22.49 16.9976" stroke="#1A1A1A" stroke-linecap="round" stroke-linejoin="round"/>
     </svg><svg class="ml-2 refr" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none">
@@ -143,7 +146,11 @@ function getRep(json){
         $('.sq-table thead tr').html(h);
         $('.sq-table tbody').html(filters);
         $('.filters input').keyup(()=>{applyFilters(event.target)});
-        const urlParams = getFilterParams();
+        const urlParams = getFilterParams(); 
+        if (!$.isEmptyObject(urlParams)) {
+            $('.clear-filters').show();
+            $('.refr').removeClass('ml-2');
+        }
         for (let key in urlParams) {
             $('.filters input[name="' + key + '"]').val(urlParams[key]);
         }
@@ -637,6 +644,8 @@ function doApplyFilters(p){
 	lastK='';
     $('.filters input').each(function(){
         if(this.value!==''){
+            $('.clear-filters').show();
+            $('.refr').removeClass('ml-2');
             if(this.value==='%'||this.value==='!%'||this.value.substr(0,1)==='@'||this.value.substr(0,2)==='!@')
             	val=this.value;
             else
@@ -654,12 +663,14 @@ function doApplyFilters(p){
         	fd.append($(this).attr('name'),val);
         }
     });
-    if(p==='RECORD_COUNT')
+    if(p==='RECORD_COUNT'){
         newApi('POST','report/'+id+'?JSON&RECORD_COUNT','getCountDone',fd);
-    else{
-        const urlParams = getFilterParams();
-        for (let key in urlParams) {
-            fd.append(key,urlParams[key]);
+    }else{
+        if (!p) {
+            const urlParams = getFilterParams();
+            for (let key in urlParams) {
+                fd.append(key,urlParams[key]);
+            }
         }
         if(p===-2) // First page
             p=0,page=1;
@@ -721,7 +732,7 @@ function applyFilters(el){
         timer=setTimeout(()=>{
             page=1;
             total=undefined;
-            doApplyFilters();
+            doApplyFilters(-2);
         },333);
     }
 }
