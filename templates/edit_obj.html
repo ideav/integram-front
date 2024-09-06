@@ -275,6 +275,7 @@ $(document).ready(function() {
             },
             placeholder: t9n('[RU]Выберите[EN]Select'),
             allowClear: true,
+            sorter: data => data.sort((a, b) => a.text.localeCompare(b.text)),
             ajax: $(this).attr('i-more') || true ? {
                 url: function(params){
                     const restrict=$('select[i-orig='+($(this).attr('i-restrict')||-1)+']').val();
@@ -358,7 +359,8 @@ function updateDependentSelects(e, multi){
                 $('.select2#t' + childId).select2({
                     data: newOptions,//JSON.parse(res).object.map(v => ({id: v.id, text: v.val}))
                     placeholder: t9n('[RU]Выберите[EN]Select'),
-                    allowClear: true
+                    allowClear: true,
+                    sorter: data => data.sort((a, b) => a.text.localeCompare(b.text)),
                 })
             })
             .fail(err => console.log(err));

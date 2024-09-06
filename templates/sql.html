@@ -128,7 +128,7 @@ center:hover .add-id-for-col {
 } */
 </style>
 <div class="t9n">
-<div id="show" class="list">
+<div id="show" class="list" style="z-index: 1;">
 <a id="showanchor" onclick="if(json['list']){byId('queries').classList.remove('hidden');byId('show').classList.add('hidden')}else myApi('GET','object/22/?JSON','list')"><img class="icon8" title="<t9n>[RU]Список запросов[EN]Reports list</t9n>" src="https://img.icons8.com/ios/25/222222/list.png"></a>
 </div>
 <div id="queries" class="list list-open shadow p-3 hidden" onclick="event.stopPropagation?event.stopPropagation():(event.cancelBubble=true);">
@@ -864,7 +864,7 @@ function addTextareaListeners() {
         }
         
         const newTextarea = $('[id="' + inputSelector.attr('id') + '_text"]');
-        newTextarea.keyup(function(event){ // Text input fields on Enter pressed
+        newTextarea.keydown(function(event){ // Text input fields on Enter pressed
             if(event.key === 'Enter' && !event.shiftKey)
                 saveTextareaValue(newTextarea, inputSelector);
             if(event.key === 'Escape')
