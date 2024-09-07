@@ -43,8 +43,8 @@ label {
     margin-bottom: 0;
     position: relative;
 }
-.textarea-container:last-of-type {
-    padding-bottom: 10px;
+.textarea-container + #ShowReport {
+    margin-top: 10px;
 }
 .textarea-container textarea {
     padding: 5px 10px;
@@ -857,10 +857,14 @@ function addTextareaListeners() {
                     $(inputSelector).parent().prevAll().find('.active-input').length +
                     $(inputSelector).parent().parent().prevAll().find('.active-input').length;
 
-        if (index > 0) {
-            $('.textarea-container:nth-of-type(' + index + ')').after(newTextareaHtml);   
+        if (!$('.textarea-container').length) {
+            inputSelector.closest('#ShowReport').before(newTextareaHtml);
         } else {
-            inputSelector.closest('#ShowReport').prepend(newTextareaHtml);
+            if (index > 0) {
+                $($('.textarea-container')[index - 1]).after(newTextareaHtml);
+            } else {
+                $($('.textarea-container')[index]).before(newTextareaHtml);
+            }
         }
         
         const newTextarea = $('[id="' + inputSelector.attr('id') + '_text"]');
