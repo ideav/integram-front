@@ -468,6 +468,7 @@ function initSel2(el){
               newTag: true
             }
         },
+        sorter: data => data.sort((a, b) => a.text.localeCompare(b.text)),
         placeholder: t9n('[RU]Выберите[EN]Select'),
         allowClear: true,
         ajax: $(curEl).attr('i-more') ? {
