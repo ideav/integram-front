@@ -107,7 +107,10 @@ const msLink='<span class="badge badge-pill badge-secondary-outline border borde
 	    +'</a></span>'
     ,addTableReq='<a class="new-table-req position-absolute" onclick="addRow(this)"><svg width="28" height="28" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">'
         +'<path d="M18 12.8572V23.1429M12.8571 18H23.1428M8.99999 6.42859H27C28.4201 6.42859 29.5714 7.57986 29.5714 9.00002V27C29.5714 28.4202 28.4201 29.5714 27 29.5714H8.99999C7.57983 29.5714 6.42856 28.4202 6.42856 27V9.00002C6.42856 7.57986 7.57983 6.42859 8.99999 6.42859Z" stroke="#1A1A1A" stroke-linecap="round" stroke-linejoin="round"/>'
-        +'</svg></a>';
+        +'</svg></a>'
+    ,delFile='<a class="mr-3" onclick="deleteFile(this)"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">'
+            +'<path d="M5 8H23M10 8V6C10 5.46957 10.2107 4.96086 10.5858 4.58579C10.9609 4.21071 11.4696 4 12 4H16C16.5304 4 17.0391 4.21071 17.4142 4.58579C17.7893 4.96086 18 5.46957 18 6V8M21 8V22C21 22.5304 20.7893 23.0391 20.4142 23.4142C20.0391 23.7893 19.5304 24 19 24H9C8.46957 24 7.96086 23.7893 7.58579 23.4142C7.21071 23.0391 7 22.5304 7 22V8H21Z" stroke="#1A1A1A" stroke-linecap="round" stroke-linejoin="round">'
+            +'</path></svg></a>';
 function errMsgCard(err){
     $('.err-msg').html(err).show();
 }
@@ -276,7 +279,9 @@ function addRow(el){
         var i;
         if(el&&(metas[this.id]===0))
             i=$(el).closest('.sq-row').find('td[req-id='+this.id+']').attr('obj-id');
-        h+='<td req-id="'+this.id+'" onclick="inlineEdit(this)"'
+        let base = '';
+        if (metas[this.id]?.type==="10") base = 'base="FILE"';
+        h+='<td req-id="'+this.id+'" '+base+' onclick="inlineEdit(this)"'
                 +' class="position-relative '+(reqId===this.id||(!reqId&&metas[this.id]===0)?' sq-new':'')+'"'
                 +' onmouseover="showAdd('+this.id+',this)"'
                 +($(this).attr('is-object')?' is-object="1"':'')+'>';
@@ -342,7 +347,7 @@ function inlineEdit(el){
         return blurSelect($(el).find('select'));
     if($(el).hasClass('editing')||$(el).hasClass('saving')||!$(el).attr('req-id')||$(el).hasClass('last-edited'))
         return;
-    if($(el).html().indexOf('<a target')!==-1||metas[reqType]===undefined) // Interactive report or unknown rec type
+    if($(el).attr('base')!=='FILE' && ($(el).html().indexOf('<a target')!==-1||metas[reqType]===undefined)) // Interactive report or unknown rec type
         return;
     $('.new-table-req').remove();
     var i,val=$(el).html()
@@ -371,6 +376,8 @@ function inlineEdit(el){
     }
     else if($(el).attr('base')==='MEMO')
         $(el).html('<textarea class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onchange="saveVal(this)">');
+    else if($(el).attr('base')==='FILE')
+        $(el).html(($(el).find('a').length>0?delFile:'') + '<input type="file" class="inline-edit" onchange="saveInlineFile(this)">');
     else
         $(el).html('<input type="text" class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onchange="saveVal(this)">');
     $('.inline-edit').focus();
@@ -386,7 +393,8 @@ function inlineEdit(el){
                 if(parentId===$(this).closest('.sq-row').find('td[req-id='+parentType+'][is-object=1]').attr('obj-id'))
                     $(this).addClass('same-object');
             });
-    $(el).find('input,textarea').val(val);
+    if ($(el).attr('base')!=='FILE')
+        $(el).find('input,textarea').val(val);
 }
 function delRefDone(json,el){
     $(el).closest('span').remove();
@@ -610,13 +618,36 @@ function saveVal(elem){
     $('.same-object').html(val).attr('old-val',val);
     $('.same-object').removeClass('same-object');
 }
+function saveInlineFileDone(json,el){
+    const v='<a target="_blank" href="/'+json.args+'">'+$(el).find('input').get(0).files.item(0).name+'</a>';
+    $(el).html(v);
+    $(el).removeClass('editing');
+    $(el).attr('v',v);
+}
+function saveInlineFile(el){
+    var fd=new FormData(),td=$(el).closest('td');
+    if(el.files[0].name){
+    	fd.append('t'+$(el).closest('td').attr('req-id'),el.files[0],el.files[0].name);
+        newApi('POST','_m_set/'+$(el).closest('tr').children(':first').attr('obj-id')+'?JSON','saveInlineFileDone',fd,td);
+        $(el).removeClass('last-edited');
+    }
+    else
+        $(el).closest('td').html($(el).closest('td').attr('v'));
+}
+function deleteFile(el){
+    newApi('POST','_m_set/'+$(el).closest('tr').children(':first').attr('obj-id')+'?JSON','deleteFileDone','t'+$(el).closest('td').attr('req-id'),el);
+}
+function deleteFileDone(json,el){
+    $(el).closest('td').html('');
+}
 function getMeta(json,refId){
     for(var i in json.reqs){
         metas[json.reqs[i].id]={id:refId||json.id
                                 ,arrId:json.reqs[i].arr_id
                                 ,refId:json.reqs[i].ref_id
                                 ,ref:json.reqs[i].ref
-                                ,multi:json.reqs[i].attrs&&json.reqs[i].attrs.indexOf(":MULTI:")!==-1};
+                                ,multi:json.reqs[i].attrs&&json.reqs[i].attrs.indexOf(":MULTI:")!==-1
+                                ,type:json.reqs[i].type};
         if(json.reqs[i].arr_id)
             arrs[json.reqs[i].arr_id]=metas[json.reqs[i].arr_id]=refId||json.id;
         // Get ref column's reqs in case we have those in the report
