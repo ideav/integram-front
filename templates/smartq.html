@@ -182,14 +182,26 @@ function getRep(json){
         h+='<tr class="sq-row">';
         for(j in json.data){
             base='base="'+json.columns[j].format+'"';
+            var value;
+            if (json.columns[j].format === 'NUMBER' || json.columns[j].format === 'SIGNED') {
+                var digits = json.columns[j].format === 'NUMBER' ? 0 : 2;
+                value = json.data[j][i] === '' ? '' : Intl.NumberFormat(undefined,{
+                    minimumFractionDigits: digits,
+                    maximumFractionDigits: digits,
+                    useGrouping:true
+                }).format(parseFloat(json.data[j][i]));
+                value = value.replace(/(\u00A0|&nbsp;)/g, " ");
+            } else {
+                value = json.data[j][i];
+            }
             if(json.columns[j].type==='')
-                h+='<td '+base+' class="calculable">'+json.data[j][i];
+                h+='<td '+base+' class="calculable">'+value;
             else if(ids[j]===1)
                 h+='<td req-id="'+json.columns[j].type+'" is-object="1" class="position-relative" '+base
                     +' onmouseover="showAdd('+json.columns[j].type+',this)"'
-                    +(json.columns[j].ref?' ref-id="':' obj-id="')+json.data[columns[json.columns[j].name+'ID'].col][i]+'">'+json.data[j][i];
+                    +(json.columns[j].ref?' ref-id="':' obj-id="')+json.data[columns[json.columns[j].name+'ID'].col][i]+'">'+value;
             else if(ids[j]!==0)
-                h+='<td req-id="'+json.columns[j].type+'" '+base+' onmouseover="$(\'.new-table-req\').remove()">'+json.data[j][i];
+                h+='<td req-id="'+json.columns[j].type+'" '+base+' onmouseover="$(\'.new-table-req\').remove()">'+value;
         }
     }
     $('.sq-table tbody').append(h);
@@ -380,6 +392,25 @@ function inlineEdit(el){
         $(el).html(($(el).find('a').length>0?delFile:'') + '<input type="file" class="inline-edit" onchange="saveInlineFile(this)">');
     else
         $(el).html('<input type="text" class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onchange="saveVal(this)">');
+
+    if ($(el).attr('base')==='NUMBER' || $(el).attr('base')==='SIGNED'){
+        var digits = $(el).attr('base') === 'NUMBER' ? 0 : 2;
+        $('.inline-edit').on('focus',function(){
+            var lastPart, rawValue;
+            if (val === '') {
+                $(this).val(val);
+            } else {
+                var parts = val.split(/[\s,\.]/);
+                if ($(el).attr('base') === 'NUMBER') {
+                    rawValue = parts.join('');
+                } else {
+                    rawValue = parts.join('') + '.' + getRoundedDecimalString(parts.pop());
+                }
+                $(this).val(rawValue);
+            }
+        });
+    }
+    
     $('.inline-edit').focus();
     $(el).attr('old-val',val);
     $('.last-edited,.editing').removeClass('last-edited').removeClass('editing');
@@ -573,7 +604,20 @@ function saveRef(el){
     $('.same-object').removeClass('same-object');
 }
 function saveVal(elem){
-    var i,val=elem.value,el=$(elem).closest('td');
+    var i,val,digits=0,el=$(elem).closest('td');
+    if ($(el).attr('base') === 'NUMBER' || $(el).attr('base') === 'SIGNED') {
+        parts = elem.value.split(/([.,])(?!.*[.,])/);
+        parts[0] = parts[0].replace(/[^0-9]/g, '');
+        if (parts.length > 1) {
+            parts[2] = parts[2].replace(/[^0-9]/g, '');
+            val = parts[0] + '.' + parts[2];
+        } else {
+            val = parts.join('');
+        }
+        digits = $(el).attr('base') === 'NUMBER' ? 0 : 2;
+    } else {
+        val = elem.value;
+    }
     if($(el).hasClass('saving')||!$(el).hasClass('editing')) // Blur and Change both might be triggered
         return;
     if($(el).hasClass('sq-new')&&val==='')
@@ -615,8 +659,26 @@ function saveVal(elem){
     }
     
     $(el).removeClass('editing');
-    $(el).html(val).attr('old-val',val);
-    $('.same-object').html(val).attr('old-val',val);
+    if ($(el).attr('base') === 'NUMBER' || $(el).attr('base') === 'SIGNED') {
+        parts = val.split('.');
+        if (parts.length > 1) {
+            val = parts[0] + '.' + getRoundedDecimalString(parts[1]);
+        }
+        var formattedVal = Intl.NumberFormat(undefined,{
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+            useGrouping:true
+        }).format(parseFloat(val));
+        if (formattedVal === 'NaN') {
+            formattedVal = '';
+        }
+        formattedVal = formattedVal.replace(/(\u00A0|&nbsp;)/g, " ");
+        $(el).html(formattedVal);
+        $('.same-object').html(formattedVal).attr('old-val',formattedVal);
+    } else {
+        $(el).html(val).attr('old-val',val);
+        $('.same-object').html(val).attr('old-val',val);
+    }
     $('.same-object').removeClass('same-object');
 }
 function saveInlineFileDone(json,el){
@@ -776,6 +838,10 @@ function escapeHtmls(t){
 }
 function escapeRegex(string){
     return string.replace(/[/\-\\^$*+?.()|[\]{}]/g,'\\$&');
+}
+function getRoundedDecimalString(string) {
+    var lastPartNum = +('0.' + string);
+    return (Math.round((lastPartNum + Number.EPSILON) * 100) / 100).toFixed(2).slice(2,4);
 }
 if(id>0)
     newApi('GET','edit_obj/'+id+'?JSON','getSmart');
