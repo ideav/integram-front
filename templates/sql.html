@@ -546,9 +546,9 @@ function myApi(m,u,b,vars,index){ // Параметры: метод, адрес,
                         var refs = json[b].object?.map(val => val.ref);
                         // Check if we should add ID button to the header
                         let shouldDrawIdButton = false;
-                        const colName = json[b].reqs[id][100];
+                        const colName = json[b].reqs[id]?json[b].reqs[id][100]:undefined;
                         const colBase = json[b].rep_col_list.find(val => val.id === ref);
-                        if (colBase?.type === colBase?.table && ref !== "0" && colName.slice(-2) !== "ID" && refs.filter(val => val === ref).length < 2) {
+                        if (colBase?.type === colBase?.table && ref !== "0" && colName && colName.slice(-2) !== "ID" && refs.filter(val => val === ref).length < 2) {
                             shouldDrawIdButton = true;
                         }
                         // The report table header
