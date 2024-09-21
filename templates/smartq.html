@@ -121,7 +121,7 @@ function errMsgCard(err){
 var page=1,total,columns={},ids={},arrs={},metas={},lastHead;
 function getRep(json){
     $('.ajax-wait').hide();
-    var i,j,h,name,type,filters,base,curHead='';
+    var i,j,h,name,type,filters,base,value,curHead='';
     for(i in json.columns) // Remember the columns set
         curHead+=json.columns[i].name+i;
     if(lastHead!==curHead){ // No table header yet or columns added/removed
@@ -186,18 +186,10 @@ function getRep(json){
         h+='<tr class="sq-row">';
         for(j in json.data){
             base='base="'+json.columns[j].format+'"';
-            var value;
-            if (json.columns[j].format === 'NUMBER' || json.columns[j].format === 'SIGNED') {
-                var digits = json.columns[j].format === 'NUMBER' ? 0 : 2;
-                value = json.data[j][i] === '' ? '' : Intl.NumberFormat(undefined,{
-                    minimumFractionDigits: digits,
-                    maximumFractionDigits: digits,
-                    useGrouping:true
-                }).format(parseFloat(json.data[j][i]));
-                value = value.replace(/(\u00A0|&nbsp;)/g, " ");
-            } else {
+            if(json.columns[j].format === 'NUMBER' || json.columns[j].format === 'SIGNED')
+                value = formatNum(json.data[j][i],json.columns[j].format);
+            else
                 value = json.data[j][i];
-            }
             if(json.columns[j].type==='')
                 h+='<td '+base+' class="calculable">'+value;
             else if(ids[j]===1)
@@ -394,27 +386,11 @@ function inlineEdit(el){
         $(el).html('<textarea class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onchange="saveVal(this)">');
     else if($(el).attr('base')==='FILE')
         $(el).html(($(el).find('a').length>0?delFile:'') + '<input type="file" class="inline-edit" onchange="saveInlineFile(this)">');
+    else if($(el).attr('base')==='NUMBER'||$(el).attr('base')==='SIGNED')
+        $(el).html('<input type="number" class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onchange="saveVal(this)" value="'+val.replace(/ /g,'').replace(',','.')+'">');
     else
         $(el).html('<input type="text" class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onchange="saveVal(this)">');
 
-    if ($(el).attr('base')==='NUMBER' || $(el).attr('base')==='SIGNED'){
-        var digits = $(el).attr('base') === 'NUMBER' ? 0 : 2;
-        $('.inline-edit').on('focus',function(){
-            var lastPart, rawValue;
-            if (val === '') {
-                $(this).val(val);
-            } else {
-                var parts = val.split(/[\s,\.]/);
-                if ($(el).attr('base') === 'NUMBER') {
-                    rawValue = parts.join('');
-                } else {
-                    rawValue = parts.join('') + '.' + getRoundedDecimalString(parts.pop());
-                }
-                $(this).val(rawValue);
-            }
-        });
-    }
-    
     $('.inline-edit').focus();
     $(el).attr('old-val',val);
     $('.last-edited,.editing').removeClass('last-edited').removeClass('editing');
@@ -428,7 +404,7 @@ function inlineEdit(el){
                 if(parentId===$(this).closest('.sq-row').find('td[req-id='+parentType+'][is-object=1]').attr('obj-id'))
                     $(this).addClass('same-object');
             });
-    if ($(el).attr('base')!=='FILE')
+    if($(el).attr('base')!=='FILE'&&$(el).attr('base')!=='NUMBER'&&$(el).attr('base')!=='SIGNED')
         $(el).find('input,textarea').val(val);
 }
 function delRefDone(json,el){
@@ -608,27 +584,15 @@ function saveRef(el){
     $('.same-object').removeClass('same-object');
 }
 function saveVal(elem){
-    var i,val,digits=0,el=$(elem).closest('td');
-    if ($(el).attr('base') === 'NUMBER' || $(el).attr('base') === 'SIGNED') {
-        parts = elem.value.split(/([.,])(?!.*[.,])/);
-        parts[0] = parts[0].replace(/[^0-9]/g, '');
-        if (parts.length > 1) {
-            parts[2] = parts[2].replace(/[^0-9]/g, '');
-            val = parts[0] + '.' + parts[2];
-        } else {
-            val = parts.join('');
-        }
-        digits = $(el).attr('base') === 'NUMBER' ? 0 : 2;
-    } else {
-        val = elem.value;
-    }
+    var i,val,digits=0,el=$(elem).closest('td'),dispVal;
+    val=$(el).attr('base')==='NUMBER'?Math.floor(elem.value):elem.value;
     if($(el).hasClass('saving')||!$(el).hasClass('editing')) // Blur and Change both might be triggered
         return;
     if($(el).hasClass('sq-new')&&val==='')
         return $(el).closest('.sq-row').remove();
     if(val!==$(el).attr('old-val')){
     	var up=1,fd=new FormData();
-        fd.append('t'+$(el).attr('req-id'),val);    
+        fd.append('t'+$(el).attr('req-id'),val);
         if($(el).attr('is-object')==="1"){
             if($(el).attr('obj-id')>0){
                 if(val==='')
@@ -663,27 +627,22 @@ function saveVal(elem){
     }
     
     $(el).removeClass('editing');
-    if ($(el).attr('base') === 'NUMBER' || $(el).attr('base') === 'SIGNED') {
-        parts = val.split('.');
-        if (parts.length > 1) {
-            val = parts[0] + '.' + getRoundedDecimalString(parts[1]);
-        }
-        var formattedVal = Intl.NumberFormat(undefined,{
-            minimumFractionDigits: digits,
-            maximumFractionDigits: digits,
-            useGrouping:true
-        }).format(parseFloat(val));
-        if (formattedVal === 'NaN') {
-            formattedVal = '';
-        }
-        formattedVal = formattedVal.replace(/(\u00A0|&nbsp;)/g, " ");
-        $(el).html(formattedVal);
-        $('.same-object').html(formattedVal).attr('old-val',formattedVal);
-    } else {
-        $(el).html(val).attr('old-val',val);
-        $('.same-object').html(val).attr('old-val',val);
-    }
+    if($(el).attr('base') === 'NUMBER' || $(el).attr('base') === 'SIGNED')
+        dispVal = formatNum(val,$(el).attr('base'));
+    else
+        dispVal = val;
+    $(el).html(dispVal).attr('old-val',val);
+    $('.same-object').html(dispVal).attr('old-val',val);
     $('.same-object').removeClass('same-object');
+}
+function formatNum(n,f){
+    var digits = f === 'NUMBER' ? 0 : 2;
+    value = n === '' ? '' : Intl.NumberFormat(undefined,{
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+        useGrouping:true
+    }).format(parseFloat(n));
+    return value.replace(/(\u00A0|&nbsp;)/g, ' ');
 }
 function saveInlineFileDone(json,el){
     const v='<a target="_blank" href="/'+json.args+'">'+$(el).find('input').get(0).files.item(0).name+'</a>';
