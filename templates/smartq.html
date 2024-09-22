@@ -290,9 +290,9 @@ function addRow(el){
         var i;
         if(el&&(metas[this.id]===0))
             i=$(el).closest('.sq-row').find('td[req-id='+this.id+']').attr('obj-id');
-        h+='<td req-id="'+this.id+'" base="'+baseType[this.id]+'" onclick="inlineEdit(this)"'
-                +' class="position-relative '+(reqId===this.id||(!reqId&&metas[this.id]===0)?' sq-new':'')+'"'
-                +' onmouseover="showAdd('+this.id+',this)"'
+        h+='<td req-id="'+this.id+'" '+(baseType[this.id]?'base="'+baseType[this.id]+'"':'')+' onclick="inlineEdit(this)"'
+                +' class="position-relative '+(reqId===this.id||(!reqId&&metas[this.id]===0)?' sq-new':'')+(this.id?'':' calculable')+'"'
+                +(this.id?' onmouseover="showAdd('+this.id+',this)"':'')
                 +($(this).attr('is-object')?' is-object="1"':'')+'>';
     });
     if(reqId){
