@@ -27,6 +27,16 @@
     display: none;
     z-index: 2;
 }
+.auto-parent{
+    width: 70px;
+}
+.auto-parent{
+    -moz-appearance:textfield;
+}
+.auto-parent::-webkit-outer-spin-button,
+.auto-parent::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
 </style>
 <div id="choice">
     <select class="form-control reps" onchange="if(this.value==='new')createType();else intApi('GET','object/'+this.value+'?JSON','type')" id="chosenType">
@@ -44,7 +54,7 @@
     <div class="mb-5 p-1 p-sm-2 shadow">
         <t9n>[RU]Вставьте текст из файла в это поле или выберите файл для загрузки:[EN]Put your file content here or select a file to upload:</t9n>
         <textarea rows="5" class="form-control mb-2 mt-1" id="input"></textarea>
-        <label for="Import"><t9n>[RU]JSON или любой текстовый файл: CSV, TXT и т.п. Форматы XLS и XLSX пока не поддерживаются (просто скопируйте кусок вашего экселя в поле выше).[EN]JSON or any text file: CSV, TXT, etc. No XLS and XLSX accepted (copy/paste the content of XLS here instead)</t9n></label>
+        <t9n>[RU]JSON или любой текстовый файл: CSV, TXT и т.п. Форматы XLS и XLSX пока не поддерживаются (просто скопируйте кусок вашего экселя в поле выше).[EN]JSON or any text file: CSV, TXT, etc. No XLS and XLSX accepted (copy/paste the content of XLS here instead)</t9n>
         <input class="form-control" type="file" id="selectFiles" value="Import" /><br />
         <div class="d-inline-block pb-3" id="try"><button onclick="importParse()" class="btn btn-primary"><t9n>[RU]Проверить[EN]Validate</t9n></button></div>
         <div class="d-inline-block pb-3"><button onclick="$('#tune').toggle()" id="tune-btn" class="btn btn-outline-secondary"><t9n>[RU]Настроить[EN]Settings</t9n></button></div>
@@ -111,12 +121,13 @@
     <div id="up" class="mt-4" style="display:none">
         <div class="d-inline-block">
             <t9n>[RU]Выберите родительскую запись для загрузки[EN]Select the parent record to upload its attributes</t9n>
-            <input type="text" id="searchParent" class="form-control" onfocusout="validateParent(this)" onfocus="searchDb(event)" onkeyup="searchDb(event)" placeholder="<t9n>[RU]Поиск по значению или #ID[EN]Search by value or #ID</t9n>">
-            <label>
-                <input type="checkbox" id="autoParent" onchange="setAutoParent(this)" class="mt-3">
-                <t9n>[RU]Взять значение родителя или его ID из первой колонки[EN]Get the parent or its ID from the first column</t9n>
-            </label>
+            <input type="text" id="searchParent" class="form-control" onfocusout="validateParent()" onfocus="searchDb(event)" onkeyup="searchDb(event)" placeholder="<t9n>[RU]Поиск по значению или #ID[EN]Search by value or #ID</t9n>">
             <div class="search-results shadow-lg"></div>
+            <p class="mt-2">
+                <t9n>[RU]или укажите колонку исходного файла, откуда взять родителя или его ID[EN]or set the number of the column in the source file to get the parent or its ID</t9n>:
+                 <input style="display: none;" />
+                 <input type="number" name="ap" class="form-control auto-parent" onchange="setAutoParent(this.value)" min="0" autocomplete="off" placeholder="N" />
+            </p>
         </div>
     </div>
     <div id="resume" class="mt-4"></div>
@@ -125,48 +136,35 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.1/papaparse.min.js" integrity="sha512-EbdJQSugx0nVWrtyK3JdQQ/03mS3Q1UiAhRtErbwl1YL/+e2hZdlIcSURxxh7WXHTzn83sjlh2rysACoJGfb6g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 var input,sourceMap=[],importMap={},chosenType,chosenTypeName,chosenSet,upType,uploadSets={},toImport=[],saveSet,formulas={},statArr={},origMap={}
-    ,types={},bt={},revBt={},toCreate=[],newType,chunkSize=1000,autoParentChecked
+    ,types={},bt={},revBt={},toCreate=[],newType,chunkSize=1000,autoParent
     ,ajax='<img src="/i/ajax.gif">'
     ,typeOption='<option value=":id:" id=":id:">:name:</option>';
 $('#dummy').html(t9n('[RU]Выберите таблицу для загрузки[EN]Select a table to upload'));
 $('#from_file').html(t9n('[RU]*** Создать новую таблицу из файла ***[EN]*** Create new table from file ***'));
 $('#saved_set').html(t9n('[RU]или выберите сохраненную настройку[EN]or select a saved setting'));
+$('title').html(t9n('[RU]Универсальный импорт[EN]Smart import'));
 function resetEncoding(){
     if(chosenType===undefined)
         $('#sortable').html('');
     importParse();
 }
-function setAutoParent(el){
-    if(el.checked){
-        sourceMap.unshift({id:getUpType(chosenType),base:'3',name:getParent(chosenType),skip:0});
-        origMap[getUpType(chosenType)]=1;
-        for(i in origMap)
-            if(i!==getUpType(chosenType))
-                origMap[i]=origMap[i]+1;
-        importMap[getUpType(chosenType)]=0;
-        for(i in importMap)
-            if(i!==getUpType(chosenType))
-                importMap[i]=importMap[i]+1;
-        $('#do-upload').attr('disabled',false);
+function setAutoParent(par){
+    autoParent=par===''?undefined:par;
+    if(autoParent){
         $('#searchParent').val('');
-        autoParentChecked=true;
+        $('#do-upload').attr('disabled',false);
     }
-    else{
-        sourceMap.shift();
-        delete origMap[getUpType(chosenType)];
-        for(i in origMap)
-            origMap[i]=origMap[i]-1;
-        delete importMap[getUpType(chosenType)];
-        for(i in importMap)
-            importMap[i]=importMap[i]-1;
-        $('#do-upload').attr('disabled',true);
-        autoParentChecked=false;
-    }
+    else
+        $('.auto-parent').val('');
+    gatherSet();
     importParse();
 }
-function validateParent(el){
-    if($(el).attr('up-name')&&el.value!==$(el).attr('up-name'))
-        el.value=$(el).attr('up-name')
+function validateParent(){
+    const el=$('#searchParent');
+    if(el.attr('up-name')&&el.value!==$(el).attr('up-name')){
+        el.value=$(el).attr('up-name');
+        setAutoParent();
+    }
 }
 function createType(count){
     intApi('GET','edit_types?JSON','base');
@@ -211,12 +209,13 @@ function doCreateType(){
                 return;
             }
     for(i in sourceMap)
-        for(j in sourceMap)
-            if(i!==j&&sourceMap[i].name===sourceMap[j].name){
-                putMsg('errors',t9n('[RU]Найдены одинаковые имена колонок[EN]Duplicated column names found')+': <b>'+sourceMap[j].name+'</b>'
-                        +', <a class="du text-white" onclick="$(\'#n'+j+'\').focus()">'+t9n('[RU]переименуйте их[EN]rename it')+'</a>.',true);
-                return;
-            }
+        if(sourceMap[i].skip===0)
+            for(j in sourceMap)
+                if(i!==j&&sourceMap[i].name===sourceMap[j].name&&sourceMap[j].skip===0){
+                    putMsg('errors',t9n('[RU]Найдены одинаковые имена колонок[EN]Duplicated column names found')+': <b>'+sourceMap[j].name+'</b>'
+                            +', <a class="du text-white" onclick="$(\'#n'+j+'\').focus()">'+t9n('[RU]переименуйте их[EN]rename it')+'</a>.',true);
+                    return;
+                }
     while(toCreate.length)
         toCreate.shift();
     if(newType===undefined)
@@ -318,7 +317,11 @@ function doImport(count){
         if(toImport[i]===undefined)
             break;
         if(newType===undefined){
-            k=1;
+            k=0;
+            if(autoParent){
+                file+=escapeSlashesNSemicolons(toImport[i][0])+';';
+                k++;
+            }
             for(j in origMap)
                 file+=toImport[i][k]===undefined?';':escapeSlashesNSemicolons(toImport[i][k])+';',
                 k++;
@@ -337,7 +340,7 @@ function doImport(count){
         fd.append('import','1');
         if($('#searchParent').attr('up-id'))
             fd.append('F_U',$('#searchParent').attr('up-id'));
-        if(autoParentChecked)
+        if(autoParent)
             fd.append('autoParent',getUpType(chosenType));
         intApi('POST','object/'+chosenType+'?JSON&import=1','upload',fd,i);
     }
@@ -501,9 +504,9 @@ function intApi(m,u,b,vars,index){ // Параметры: метод, адрес
             case 'type':
                 chosenType=json.type.id;
                 chosenTypeName=json.type.val;
-                origMap[json.type.id]=1;
+                origMap[json.type.id]=0;
                 for(i in json.req_order)
-                    origMap[json.req_order[i]]=parseInt(i)+2;
+                    origMap[json.req_order[i]]=parseInt(i)+1;
                 j=0;
                 if(chosenSet===undefined){
                     $('#save-set').val(chosenTypeName);
@@ -523,7 +526,10 @@ function intApi(m,u,b,vars,index){ // Параметры: метод, адрес
                     j=0;
                     for(i in m){
                         while(j<i)
-                            m[j++]=addSortable('','','---','---');
+                            if(uploadSets[chosenSet].autoParent&&uploadSets[chosenSet].autoParent==j)
+                                j++;
+                            else
+                                m[j++]=addSortable('','','---','---');
                         j++;
                     }
                     h=m.join('');
@@ -550,6 +556,12 @@ function intApi(m,u,b,vars,index){ // Параметры: метод, адрес
                     $('.ui-state-default[id="'+i+'"]').addClass('has-formula');
                     $('#f'+i).addClass('text-success');
                 }
+                if(uploadSets[chosenSet]&&uploadSets[chosenSet].autoParent){
+                    $('.auto-parent').val(uploadSets[chosenSet].autoParent);
+                    setAutoParent(uploadSets[chosenSet].autoParent);
+                }
+                if(uploadSets[chosenSet]&&uploadSets[chosenSet].searchParent)
+                    selectItem(uploadSets[chosenSet].searchParent,'#'+uploadSets[chosenSet].searchParent);
                 break;
                 
             case 'base':
@@ -584,6 +596,10 @@ function intApi(m,u,b,vars,index){ // Параметры: метод, адрес
             case 'check-set':
                 saveSet={type:chosenType,name:chosenTypeName,header:($('#header').prop('checked')?1:0),trim:($('#trim').prop('checked')?1:0)
                         ,delimiter:$('#delim').val(),newline:$('#caret').val(),importMap:importMap,formulas:formulas};
+                if(autoParent)
+                    saveSet['autoParent']=autoParent;
+                if($('#searchParent').val().length>0)
+                    saveSet['searchParent']=$('#searchParent').attr('up-id');
                 if(json.object)
                     intApi('POST','_m_set/'+json.object[0].id+'?JSON&t273='+encodeURIComponent(JSON.stringify(saveSet)),'save-set');
                 else
@@ -632,6 +648,7 @@ function selectItem(dicId,val){
     $('#searchParent').val(val).attr('up-id',dicId).attr('up-name',val);
     $('#do-upload').attr('disabled',false);
     $('.search-results').hide();
+    setAutoParent();
 }
 intApi('GET','object/269?JSON&F_271=UPLOAD','sets')
 intApi('GET','edit_types?JSON','types');
@@ -677,7 +694,7 @@ function gatherSet(){
                             ,link:$('#l'+this.id).hasClass('is-link')?($('#l'+this.id).hasClass('multiselect')?2:1):0};
             else
                 sourceMap[i]={id:this.id,base:$('#t'+this.id).val(),name:$('#n'+this.id).val(),skip:0};
-            importMap[this.id]=i;
+            importMap[this.id]=autoParent<=i+1?i+1:i;
         }
         i++;
     });
@@ -721,7 +738,6 @@ function importParse(){
     		return false;
     	var fr = new FileReader();
     	fr.onload = function(e){
-    	    console.log()
     	    if(files[0].name.substr(-5).toLowerCase()==='.json')
                 Papa.parse(Papa.unparse(e.target.result),{skipEmptyLines:true
                     ,LocalChunkSize:1048024
@@ -749,7 +765,6 @@ function importDoParse(input){
     var val,i,j=0,jMap,reverseMap={}
         ,err=0,skippedInvalid=0,empties=0,sampleHeader='',sampleLine='',expr,l=0,line
         ,stats='<h5>'+t9n('[RU]Статистика[EN]Totals')+'</h5><table class="table table-sm table-bordered mt-2"><thead><tr><td></td>';
-    var parentCol=$('#autoParent').prop('checked');
     if(chosenType===undefined){
         parseType(input);
         $('#chosen').html('');
@@ -766,7 +781,7 @@ function importDoParse(input){
     for(j in sourceMap){
         statArr[j]={empty:0,invalid:0,min:'',max:'',avg:'',sum:0};
         stats+='<td>'+sourceMap[j].name+'</td>';
-        if(chosenType===undefined)
+        if(chosenType===undefined) 
             reverseMap[sourceMap[j].name]=sourceMap[j].id;
         else
             reverseMap[sourceMap[j].name]=importMap[sourceMap[j].id];
@@ -774,7 +789,10 @@ function importDoParse(input){
     mainloop:for(i in input.data)
         if(!$('#header').prop('checked')||i!=0){
             l++;
-            toImport[l]=[];
+            if(autoParent)
+                toImport[l]=Array(input.data[i][autoParent-1]);
+            else
+                toImport[l]=[];
             for(j in sourceMap)
                 if(sourceMap[j].skip===0){
                     if(chosenType===undefined){
@@ -784,6 +802,8 @@ function importDoParse(input){
                     else{
                         val=input.data[i][importMap[sourceMap[j].id]];
                         jMap=origMap[sourceMap[j].id];
+                        if(autoParent)
+                            jMap=parseInt(jMap)+1;
                     }
                     if($('#trim').prop('checked'))
                         if(val!==' ')
@@ -860,6 +880,8 @@ function importDoParse(input){
 }
 function drawPage(n){
     var i,j=0,line,link,h='<table class="table table-sm table-bordered mt-1"><thead><tr>';
+    if(autoParent)
+        h+='<td>'+getParent(chosenType)+'</td>';
     for(i in sourceMap)
         if(sourceMap[i].skip===0){
             link='';
@@ -880,12 +902,17 @@ function drawPage(n){
         if(!toImport[i])
             break;
         line='';
+        if(autoParent)
+            line+='<td>'+toImport[i][0]+'</td>';
         for(j in sourceMap)
             if(sourceMap[j].skip===0){
                 if(chosenType===undefined)
                     jMap=j;
-                else
+                else{
                     jMap=origMap[sourceMap[j].id];
+                    if(autoParent)
+                        jMap=parseInt(jMap)+1;
+                }
                 if(evalErrs[i+'-'+jMap])
                     line+='<td style="background-color:orange;" title="'+evalErrs[i+'-'+jMap].title+'">'+evalErrs[i+'-'+jMap].err+'</td>';
                 else if(toImport[i][jMap])
