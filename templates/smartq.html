@@ -21,6 +21,9 @@ tr.no-padding input{
 .editing{
     padding: 0 !important;
 }
+.editing-text{
+    border: 2px solid #333 !important;
+}
 .switch-pages{
     width: 30px;
 }
@@ -65,6 +68,10 @@ td[base=SIGNED],td[base=NUMBER]{
     white-space:nowrap;
     text-align-last: right;
 }
+input.inline-edit,textarea.inline-edit{
+    outline: none;
+    border: none;
+}
 .sub-totals-left{
     border-left: 2px solid darkgreen !important;
 }
@@ -85,6 +92,11 @@ td[base=SIGNED],td[base=NUMBER]{
 }
 .right-totals{
     right: 0;
+}
+.tr-sticky{
+    position:sticky;
+    top: 48px;
+    z-index: 1;   
 }
 </style>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -119,7 +131,7 @@ td[base=SIGNED],td[base=NUMBER]{
     </svg></a>
 </h3>
 </center>
-<table class="table table-sm table-bordered sq-table"><thead><tr><tbody></table>
+<table class="table table-sm table-bordered sq-table"><thead><tr class="tr-sticky"><tbody></table>
 <table class="pl-3">
     <tr>
     <td class="switch-pages">
@@ -160,9 +172,8 @@ const msLink='<span class="badge badge-pill badge-secondary-outline border borde
     ,delFile='<a class="mr-3" onclick="deleteFile(this)"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">'
             +'<path d="M5 8H23M10 8V6C10 5.46957 10.2107 4.96086 10.5858 4.58579C10.9609 4.21071 11.4696 4 12 4H16C16.5304 4 17.0391 4.21071 17.4142 4.58579C17.7893 4.96086 18 5.46957 18 6V8M21 8V22C21 22.5304 20.7893 23.0391 20.4142 23.4142C20.0391 23.7893 19.5304 24 19 24H9C8.46957 24 7.96086 23.7893 7.58579 23.4142C7.21071 23.0391 7 22.5304 7 22V8H21Z" stroke="#1A1A1A" stroke-linecap="round" stroke-linejoin="round">'
             +'</path></svg></a>';
-var bt=new Array();
-<!-- Begin:&Types -->bt[{TYP}]='{VAL}';
-<!-- End:&Types -->
+var bt={3:'SHORT',8:'CHARS',9:'DATE',13:'NUMBER',14:'SIGNED',11:'BOOLEAN',12:'MEMO',4:'DATETIME',10:'FILE',2:'HTML',7:'BUTTON',6:'PWD',5:'GRANT',15:'CALCULATABLE',16:'REPORT_COLUMN',17:'PATH'};
+var conf={order:0,page:1,total:undefined,totalsOn:undefined,columns:{},ids:{},arrs:{},metas:{},uniq:{},lastHead:undefined};
 function unMarkGroup(){
     $('.dub-grouped').removeClass('dub-grouped');
 }
@@ -188,25 +199,26 @@ function getRep(json){
             columns[json.columns[i].name]={type:json.columns[i].type,col:i};
         h='';
         filters='<tr class="no-padding filters">';
-        for(i in json.columns){
-            name=json.columns[i].name;
-            type=json.columns[i].type;
-            if(name.substr(-2)==='ID'&&columns[name.substr(0,name.length-2)]){
-                ids[i]=0;
-                $('.new-req').show();
-                if(!metas[type]&&!json.columns[i].ref){
-                    newApi('GET','metadata/'+type,'getMeta');
-                    metas[type]=0;
+        for(i in json.columns)
+            if(json.columns[i].id){
+                name=json.columns[i].name;
+                type=json.columns[i].type;
+                if(name.substr(-2)==='ID'&&columns[name.substr(0,name.length-2)]){
+                    ids[i]=0;
+                    $('.new-req').show();
+                    if(!metas[type]&&!json.columns[i].ref){
+                        newApi('GET','metadata/'+type,'getMeta');
+                        metas[type]=0;
+                    }
+                }
+                else{
+                    if(columns[name+'ID'])
+                        ids[i]=1;
+                    h+='<th id="'+type+'"'+(ids[i]?' is-object="1"':'')+'><a sq-order desc col-id="'+json.columns[i].id+'" onclick="orderBy(this)">'
+                        +'<span class="sq-order-num"></span><span class="sq-order-dir"></span> <span class="sq-col-name">'+name+'</span></a>';
+                    filters+='<td><input filter-id="'+type+'" base="'+json.columns[i].format+'" name="FR_'+name.replace(/ /g,'_')+'">';
                 }
             }
-            else{
-                if(columns[name+'ID'])
-                    ids[i]=1;
-                h+='<th id="'+type+'"'+(ids[i]?' is-object="1"':'')+'><a sq-order desc col-id="'+json.columns[i].id+'" onclick="orderBy(this)">'
-                    +'<span class="sq-order-num"></span><span class="sq-order-dir"></span> <span class="sq-col-name">'+name+'</span></a>';
-                filters+='<td><input filter-id="'+type+'" base="'+json.columns[i].format+'" name="FR_'+name.replace(/ /g,'_')+'">';
-            }
-        }
         $('.sq-table thead tr').html(h);
         $('.sq-table tbody').html(filters);
         $('.filters input').keyup(()=>{applyFilters(event.target)});
@@ -276,12 +288,20 @@ function getRep(json){
         else
             $('#pageLast').hide();
     }
+    $('.sq-row').find('td[base="MEMO"]').each(function(){ // restore the line breaks
+    	addBreaks(this);
+    });
     if(page===1)
         $('#pagePrev,#pageFirst').hide();
     else
         $('#pagePrev').show();
     if(page>2)
         $('#pageFirst').show();
+    $('.sq-row').find('td').each(function(){markDown(this)});
+}
+function addBreaks(el){
+    $(el).attr('old-val',$(el).html());
+    $(el).html($(el).html().replace(/[\t\ n]+$/gm,'').replace(/\n/gm,'<br />'));
 }
 function drawFoot(json,el){
     $('.sq-table tfoot').remove(); // Re-create the footer if any
@@ -289,7 +309,7 @@ function drawFoot(json,el){
         var h='<tfoot><tr>';
         for(j in json.columns)
             if(ids[j]!==0)
-                h+='<th footer-id="'+json.columns[j].type+'" align="right">'+(json.columns[j].totals||'');
+                h+='<th footer-id="'+json.columns[j].type+'" align="right">'+formatNum(json.columns[j].totals||'',2);
         $('.sq-table').append(h);
     }
 }
@@ -421,8 +441,12 @@ function dubRecDone(json,el){ // Duplicate done - get it via report
 }
 function newRecGet(json,vars){ // Show the duplicate
     $('.dub-rec').removeClass('dub-rec');
-    for(var i in json.data[0])
+    for(var i in json.data[0]){
         $(vars.el).closest('tr').before(drawLine(json,i,'dub-rec'));
+        $(vars.el).closest('tr').prev().find('td[base="MEMO"]').each(function(){ // restore the line breaks
+        	addBreaks(this);
+        });
+    }
     if(vars.mode){
         // Restore the subtotals class
         $('td[obj-id='+$(vars.el).attr('obj-id')+']').closest('tr:not(.dub-rec)').find('td').each(function(i){
@@ -569,7 +593,10 @@ function inlineEdit(el){
     event.stopPropagation();
     if(event&&event.ctrlKey)
         return processSubTotals(el);
-    var reqType=$(el).attr('req-id');
+    var reqType=$(el).attr('req-id')
+        ,w=$(el).css('width');
+    if($('#'+reqType).css('max-width')==='none')
+        $('#'+reqType+',td[req-id='+reqType+']').css('max-width',w).css('min-width',w);
     if($(el).hasClass('editing')&&event.target&&event.target.tagName==='TD'&&metas[reqType].refId)
         return blurSelect($(el).find('select'));
     if($(el).hasClass('editing')||$(el).hasClass('saving')||!$(el).attr('req-id'))
@@ -604,14 +631,14 @@ function inlineEdit(el){
         }
     }
     else if($(el).attr('base')==='MEMO')
-        $(el).html('<textarea class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onchange="saveVal(this)">');
+        $(el).html('<textarea class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onchange="saveVal(this)" style="min-height:'+$(el).css('height')+';max-height:'+$(el).css('height')+'">');
     else if($(el).attr('base')==='DATE'){
-        $(el).html('<input type="date" class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onchange="saveVal(this)">');
-        val=moment.utc(val||new Date(),'DD.MM.YYYY').format("YYYY-MM-DD");
+        $(el).html('<input type="date" class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onfocusout="saveVal(this)">');
+        val=moment.utc(val||new Date(),'DD.MM.YYYY');
     }
     else if($(el).attr('base')==='DATETIME'){
-        $(el).html('<input type="datetime-local" class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onchange="saveVal(this)">');
-        val=moment.utc(val||new Date(),'DD.MM.YYYY HH:mm:ss').format("YYYY-MM-DD HH:mm:ss");
+        $(el).html('<input type="datetime-local" class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onfocusout="saveVal(this)">');
+        val=moment.utc(val||new Date(),'DD.MM.YYYY HH:mm:ss');
     }
     else if($(el).attr('base')==='FILE')
         $(el).html(($(el).find('a').length>0?delFile:'') + '<input type="file" class="inline-edit" onchange="saveInlineFile(this)">');
@@ -623,9 +650,10 @@ function inlineEdit(el){
         $(el).html('<input type="text" class="inline-edit w-100" onkeydown="navKey(this)" onblur="saveVal(this)" onchange="saveVal(this)">');
 
     $('.inline-edit').focus();
-    $(el).attr('old-val',val);
-    $('.last-edited,.editing').removeClass('last-edited').removeClass('editing');
-    $(el).addClass('editing').addClass('last-edited');
+    $('.last-edited,.editing').removeClass('last-edited editing');
+    $('.editing-text').removeClass('editing-text');
+    $(el).addClass('editing last-edited');
+    $(el).find('input,textarea').closest('td').addClass('editing-text');
     if($(el).attr('obj-id')&&$('td[obj-id='+$(el).attr('obj-id')+']').length>1) // Highlight the same objects in the table in case there are more than one
         if($(el).attr('obj-id'))
             $('td[obj-id='+$(el).attr('obj-id')+']').addClass('same-object');
@@ -634,8 +662,20 @@ function inlineEdit(el){
                 if(parentId===$(this).closest('.sq-row').find('td[req-id='+parentType+'][is-object=1]').attr('obj-id'))
                     $(this).addClass('same-object');
             });
-    if($(el).attr('base')!=='FILE')
+    if($(el).attr('base')==='DATE'){
+        $(el).attr('old-val',$(el).hasClass('sq-new')?'':val.format("DD.MM.YYYY"));
+        $(el).find('input').val(val.format("YYYY-MM-DD"));
+    }
+    else if($(el).attr('base')==='DATETIME'){
+        $(el).attr('old-val',$(el).hasClass('sq-new')?'':val.format("DD.MM.YYYY"));
+        $(el).find('input').val(val.format("YYYY-MM-DD HH:mm:ss"));
+    }
+    else if($(el).attr('base')==='MEMO')
+        $(el).find('textarea').val($(el).attr('old-val'));
+    else if($(el).attr('base')!=='FILE'){
         $(el).find('input,textarea').val(val);
+        $(el).attr('old-val',val);
+    }
 }
 function unFormatNum(v){
     return v.replace(/ /g,'').replace(',','.');
@@ -673,9 +713,12 @@ function blurSelect(el){
 function fillInDdlDo(json,vars){
     if(json){
         var i,ref=$(vars.el).find('select').attr('ref-id');
-        ddList[ref]={};
+        const oid=findParent(vars.el);
+        if(!ddList[oid])
+            ddList[oid]={};
+        ddList[oid][ref]={};
         for(i in json)
-            ddList[ref][i]=json[i];
+            ddList[oid][ref][i]=json[i];
         fillInDdl(vars.el,vars.vals);
     }
 }
@@ -684,11 +727,12 @@ function fillInDdl(el,vals){
     var i,j=0,h='',ref=$(el).find('select').attr('ref-id')
         ,val=$(el).find('select option[selected]').html()
         ,oldId=$(el).find('select option[selected]').attr('value');
-    if(ddList[ref]){
-        for(i in ddList[ref]){
+    const oid=findParent(el);
+    if(ddList[oid]&&ddList[oid][ref]){
+        for(i in ddList[oid][ref]){
             j++;
-            if(vals.indexOf(ddList[ref][i])===-1)
-                h+='<option value="'+i+'">'+ddList[ref][i]+'</option>';
+            if(vals.indexOf(ddList[oid][ref][i])===-1)
+                h+='<option value="'+i+'">'+ddList[oid][ref][i]+'</option>';
         }
         $(el).find('select').append(h);
         $(el).find('select').attr('old-val',val).attr('old-id',oldId);
@@ -697,7 +741,15 @@ function fillInDdl(el,vals){
         initSel2($(el).find('select'));
     }
     else
-        newApi('GET','_ref_reqs/'+ref+'?JSON&LIMIT='+ddLLimit,'fillInDdlDo','',{el:el,vals:vals});
+        newApi('GET','_ref_reqs/'+ref+'?JSON&id='+oid+'&LIMIT='+ddLLimit,'fillInDdlDo','',{el:el,vals:vals});
+}
+function findParent(el){
+    var oid;
+    $(el).closest('tr').find('td[is-object=1]').each(function(){
+        if(metas[$(this).attr('req-id')]===0)
+            oid=$(this).attr('obj-id');
+    });
+    return oid;
 }
 function initSel2(el){
     var curEl=el;
@@ -717,7 +769,7 @@ function initSel2(el){
         allowClear: true,
         ajax: $(curEl).attr('i-more') ? {
             url: function(params){
-                return requestURL='/'+db+'/_ref_reqs/'+$(this).closest('td').attr('req-id')+'?JSON';
+                return requestURL='/'+db+'/_ref_reqs/'+$(this).closest('td').attr('req-id')+'?JSON&id='+findParent(this);
             },
             processResults: function(data){
                 let formattedData=[];
@@ -731,6 +783,14 @@ function initSel2(el){
             cache: true,
             delay: 330
         } : undefined
+    });
+}
+function refreshLine(json,el){
+    $(el).closest('.sq-row').find('td[is-object=1]').each(function(){
+        if(metas[$(this).attr('req-id')]===0){
+            saveDone({},{el:this});
+            return false;
+        }
     });
 }
 function saveDone(json,vars){
@@ -800,7 +860,7 @@ function addMsDone(json,el){
 function createDicObj(json,el){
     if(json.id){
         $(el).find('option:selected').attr('value',json.id);
-        ddList[$(el).closest('td').attr('req-id')][json.id]=json.val;
+        ddList[findParent(el)][$(el).closest('td').attr('req-id')][json.id]=json.val;
         saveRef(el);
     }
     else
@@ -902,12 +962,14 @@ function saveVal(elem){
         }
         $(el).addClass('saving');
     }
-    $(el).removeClass('editing');
+    $(el).removeClass('editing editing-text');
     if(isNumeric($(el).attr('base')))
         dispVal = formatNum(val,$(el).attr('base'));
     else
         dispVal = val;
     $(el).html(dispVal).attr('old-val',val);
+    if(base==='MEMO')
+        addBreaks(el);
     $('.same-object').html(dispVal).attr('old-val',val);
     $('.same-object').removeClass('same-object');
 }
@@ -1087,6 +1149,12 @@ function escapeRegex(string){
 function getRoundedDecimalString(string) {
     var lastPartNum = +('0.' + string);
     return (Math.round((lastPartNum + Number.EPSILON) * 100) / 100).toFixed(2).slice(2,4);
+}
+function markDown(el){
+	if(el&&el.innerHTML.indexOf('***')===-1&&el.innerHTML.indexOf('~~~')===-1&&el.innerHTML.indexOf('___')===-1)
+		el.innerHTML=el.innerHTML.replace(/\*\*(.+?)\*\*(?!\*)/g,'<b>$1</b>')
+		                        .replace(/__(.+?)__(?!\_)/g,'<i>$1</i>')
+		                        .replace(/~~(.+?)~~(?!\~)/g,'<s>$1</s>');
 }
 if(id>0)
     newApi('GET','edit_obj/'+id+'?JSON','getSmart');
