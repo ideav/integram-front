@@ -81,6 +81,20 @@
     cursor: pointer;
     font-size: small;
 }
+.cover-container{
+    margin: -1rem -1rem 2rem -1rem;
+    position: relative;
+}
+.logo-container{
+    position: absolute;
+}
+.q-logo{
+    max-width: 50%;
+}
+#runForm{
+    text-align: left;
+    max-width: 1024px;
+}
 </style>
 <div id="messages" class="msgs w-100" onclick="this.innerHTML=''" style="position:fixed; top:50px;"></div>
 <div class="select-dash" id="dashlist" style="display:none">
@@ -215,10 +229,12 @@
                     </div>
                     <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
                         <div class="card-body">
-                            <label for="token" class="mb-1">Максимальная ширина формы (px)</label>
-                            <input type="number" name="max-width" class="form-control mb-3 q-save" placeholder="Число в пикселях">
-                            <label for="token" class="mb-1">Логотип (URL)</label>
-                            <input type="text" name="logo" class="form-control q-save" placeholder="URL к вашему логотипу">
+                            <label for="width" class="mb-1">Максимальная ширина формы (px)</label>
+                            <input type="number" id="max-width" name="max-width" class="form-control mb-3 q-save" placeholder="Число в пикселях">
+                            <label for="logo" class="mb-1">Логотип (URL)</label>
+                            <input type="text" id="logo" name="logo" class="form-control mb-3 q-save" placeholder="URL к вашему логотипу (будет сверху в центре)">
+                            <label for="cover" class="mb-1">Обложка (URL)</label>
+                            <input type="text" id="cover" name="cover" class="form-control q-save" placeholder="URL к обложке (будет сверху во всю ширину)">
                         </div>
                     </div>
                   </div>
@@ -303,7 +319,15 @@
     </center>
 </div>
 <center>
-    <div id="runForm" class="shadow m-1 m-sm-3 p-1 p-sm-3" style="text-align:left; max-width:1024px; display:none">
+    <div id="runForm" class="shadow m-1 m-sm-3 p-1 p-sm-3" style="display:none">
+        <div class="cover-container" style="display:none">
+            <img class="w-100 q-cover" src="https://integram.io/download/apit/Снимок экрана 2025-06-11 102200.png" style="display:none">
+            <center>
+                <div class="logo-container" style="display:none">
+                    <img class="q-logo" src="https://integram.io/download/apit/Снимок экрана 2025-06-11 102200.png">
+                </div>
+            </center>
+        </div>
         <center>
             <h4 id="runFormName"></h4>
             <font size="+1" id="runFormDescr"></font>
@@ -314,6 +338,7 @@
         <center>
             <button class="btn btn-primary m-4" id="runFormSubmit" onclick="submitForm()">Отправить</button>
             <p class="text-muted"><a href="mailto:support@ideav.online">Сообщить о нарушении</a></p>
+            <p class="text-muted">Сделано в <a href="https://integram.io?from=quiz">Интеграм</a></p>
         </center>
     </div>
 </center>
@@ -872,6 +897,23 @@ function intApi(m,u,b,vars,index){ // Параметры: метод, адрес
                 $('#runFormName').html(quiz.name||'');
                 $('#runFormDescr').html(quiz.descr||'');
                 $('#runFormSubmit').html(quiz.submit||'Отправить');
+                if(quiz.cover||quiz.logo){
+                    $('.cover-container').show();
+                    if(quiz.cover){
+                        $('.q-cover').attr('src',quiz.cover);
+                        $('.q-cover').show();
+                    }
+                    if(quiz.logo){
+                        $('.q-logo').attr('src',quiz.logo);
+                        $('.logo-container').show();
+                        if(quiz.cover)
+                            window.addEventListener('resize', function(event) {
+                                $('.q-logo').css('margin-top',-$('.q-cover')[0].height-$('.q-logo')[0].height/2+'px');
+                            }, true);
+                        else
+                            $('.logo-container').css('position','relative');
+                    }
+                }
                 if(quiz['max-width'])
                     $('#runForm').css('max-width',quiz['max-width']+'px');
                 for(i in quiz.form){
@@ -894,6 +936,7 @@ function intApi(m,u,b,vars,index){ // Параметры: метод, адрес
                     }
                     $('#runFormFields').html(h);
                     $('#runForm').show();
+                    window.dispatchEvent(new Event('resize'));
                 break;
                 
             case 'submitForm':
