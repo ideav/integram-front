@@ -6,7 +6,7 @@
     border: 1px solid #eeeeee;
 }
 .saving {
-    border-color: green;
+    border-color: orange;
     border-width: 2px;
 }
 .btns, .inline {
@@ -23,6 +23,15 @@
 }
 .alert-secondary {
     display: inline-block;
+}
+.f-styles-toggle{
+    border-bottom: 1px dashed;
+}
+.h4-input {
+    font-size: 1.5rem;
+}
+.err{
+    border: 2px solid red;
 }
 </style>
 <div class="t9n">
@@ -65,6 +74,7 @@ var charts={'Pivot':{'descr':'Pivot table'},
         'XYChart':{'descr':t9n('[RU]Линейный график[EN]Line chart'),'amType':'XYChart'},
 	    'PieChart':{'descr':t9n('[RU]Круговая диаграмма[EN]Pie chart'),'amType':'PieChart'},
 	    'Histogram':{'descr':t9n('[RU]Гистограмма[EN]Histogram'),'amType':'XYChart'},
+	    'Radar':{'descr':t9n('[RU]Тех. радар[EN]Tech radar'),'amType':'XYChart'},
 	    'Bubble':{'descr':t9n('[RU]Пузырьки[EN]Bubble map'),'amType':'XYChart'}};
 <!-- Begin:&Edit_Typs -->
 t[{ID}]={t:{T},r:"{REF_VAL}",u:{UNIQ},v:"{VAL}"};
@@ -89,6 +99,10 @@ function align(i){
 function unEscapeHtml(text){ // Restore the escaped HTML characters
     var map={'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&#039;':"'"};
     return text.replace(/&.+;/g,function(m){return map[m];});
+}
+function setDT(el){
+    if(!el.value)
+        el.value=defaults('[NOW]');
 }
 function defaults(v,i){
     switch(v){
@@ -125,6 +139,8 @@ function defReport(json,i){
         newApi('GET','report/'+json.object[0].id+'?JSON','callDefReport','',i);
 }
 function check(panel,typ){
+    if(typ===':typ:')
+        return false;
 	for(var i in notNull[panel])
 		if(byId(i).value==''){
 			alert(t9n('[RU]Заполните поле [EN]Fill in th field ')+notNull[panel][i]+'!');
@@ -152,7 +168,7 @@ function setDefValue(i,h){
 function myApi(m,u,b,prefix,vars){
     prefix=prefix||''; // prefix is blank by default
     var json,i,j,k,l,h='',req,obj=new XMLHttpRequest(); 
-    obj.open(m,'/api/{_global_.z}/'+u,true); // Открываем асинхронное соединение заданным методом по нужному адресу
+    obj.open(m,'/{_global_.z}/'+u,true); // Открываем асинхронное соединение заданным методом по нужному адресу
     obj.setRequestHeader('X-Authorization','{_global_.token}');
     if(m=='POST'){ // Если это POST запрос, то передаем заданные параметры
         obj.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
@@ -209,6 +225,47 @@ function myApi(m,u,b,prefix,vars){
             }
             break;
             
+        case 'Radar': // Construct the Radar
+            PanelID=prefix.panel;
+//            if(typeof TechRadar!=='object'){
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/@benlau/tech-radar@0.1.0/dist/index.umd.min.js';
+//            }
+            // Put the Radar object onto the panel
+            byId('Panel_'+PanelID+'_Report').innerHTML='<div id="radar'+PanelID+'"></div>';
+            series[PanelID]=[];
+            series[PanelID][0]=[];
+            // Transform the report for the Radar plugin
+            for(i in json.columns)
+                series[PanelID][0][i]=json.columns[i].name;
+            k=0;
+            for(i in json.data[0]){
+                k++;
+                series[PanelID][k]=[];
+                for(j in json.columns)
+                    series[PanelID][k][j]=json.data[j][i].replace(/<a[^>]*>(.*)<\/a>/i,'$1');
+            }
+            const blipItems = [
+                { name: "React", category: "languages", status: "adopt" },
+                { name: "Angular", category: "languages", status: "assess" },
+                { name: "Svelte", category: "languages", status: "trial" },  
+                { name: "Vue", category: "languages", status: "hold", angle: 0.5, radius: 0.3 },
+                // The optional `angle` and `radius` properties allow for manual positioning of blips on the Tech Radar:
+                // - `angle`: Specifies the angular position of the blip in the category. It's a value between 0 and 1.
+                // - `radius`: Determines how far the blip is from the start point inside the category. It's a value between 0 and 1.
+                // If these are not provided, the position will be determined using a number generated from the name.
+            ];
+            script.onload = function () {
+                // Create a new TechRadar instance using default config
+                const techRadar = new TechRadar(blipItems, config);
+                const config = TechRadar.getDefaultConfig();
+                // Render the Tech Radar
+                techRadar.render('#radar'+PanelID);
+            };
+            document.head.appendChild(script)
+            break;
+
+            
         case 'Pivot': // Construct the Pivot
             PanelID=prefix.panel;
             // Put the Pivot object onto the panel
@@ -261,6 +318,14 @@ function myApi(m,u,b,prefix,vars){
                         amChart[panelID].data[i][j]=json.data[j][i];
                     }
                 ShowChart(panelID,prefix.chart,json);
+                if(prefix.config){
+                    $('#'+panelID).find('.f-styles-input').val(prefix.config);
+                    $('#chartdiv'+panelID).attr('style',prefix.config);
+                }
+                else
+                    $('#'+panelID).find('.f-styles-input').val($('#chartdiv'+panelID).attr('style'));
+                if(edit)
+                    $('#'+panelID).find('.f-styles').show();
             });
             break;
 
@@ -350,26 +415,27 @@ function myApi(m,u,b,prefix,vars){
             break;
 
         case 'FillPanel':
-            if(!json['&main.a.&object']) // Return in case no object found
+            if(!json.obj) // Return in case no object found
                 break;
             byId('create_'+prefix).innerHTML='';
-            byId('Form_'+prefix).action='/{_global_.z}/_m_save/'+json['&main.a.&object']['id'];
-            byId('Panel_'+prefix+'_Actions').innerHTML=byId('Panel_'+prefix+'_Actions').innerHTML.replace(/:obj:/g,json['&main.a.&object']['id']);
+            byId('Form_'+prefix).action='/{_global_.z}/_m_save/'+json.obj.id;
+            byId('Panel_'+prefix+'_Actions').innerHTML=byId('Panel_'+prefix+'_Actions').innerHTML.replace(/:obj:/g,json.obj.id);
             byId('controls_'+prefix).style.display='block';
             for(i in json)
-                if(byId(i.substring(36))){ // Do we have a template for this type of req?
-                    h=byId(i.substring(36)).innerHTML; // Fetch the template
+                if(byId(i.substring(37))){ // Do we have a template for this type of req?
+                    h=byId(i.substring(37)).innerHTML; // Fetch the template
                     if(json[i]['typ'] && json[i]['val']){ // Reqs with a regular textbox have Type and Val
-                        for(j in json[i]['typ'])
+                        for(j in json[i]['typ']){
                             if(byId(prefix+'_'+json[i]['typ'][j])){
                                 if(json[i]['val'][j].indexOf('<a target="_blank" href="'===0)) // Check if we have a picture file here and form an <img > tag to show it
                                     if(new Array('gif','png','jpg','jpeg','bmp').indexOf(json[i]['val'][j].substring(26).split(".").pop().split('<').shift().toLowerCase())!=-1)
                                         json[i]['val'][j]='<img style="max-width:400px;" src="/'+json[i]['val'][j].substring(26).split("\"").shift()+'"><br/>'+json[i]['val'][j];
                                 byId(prefix+'_'+json[i]['typ'][j]).innerHTML=h.replace(':panel:',prefix)
                                                                             .replace(':val:',json[i]['val'][j])
-                                                                            .replace('id=":fid:'+i.substring(36)+'"','')
+                                                                            .replace('id=":fid:'+i.substring(37)+'"','')
                                                                             .replace(/:typ:/g,json[i]['typ'][j]);
                             }
+                        }
                     }
                     else
                     if(i=='&main.a.&object.&object_reqs.&editreq_array'){ // Array
@@ -380,7 +446,7 @@ function myApi(m,u,b,prefix,vars){
                             if(byId(prefix+'_'+req))
                                 byId(prefix+'_'+req).innerHTML=h.replace(':val:',json[i]['_parent_.arr_num'][j]) 
                                                                 .replace(/:typ:/g,json[i]['typ'][j])
-                                                                .replace(':parent:',json['&main.a.&object']['id']);
+                                                                .replace(':parent:',json.obj.id);
                         }
                     }
                     else
@@ -394,23 +460,25 @@ function myApi(m,u,b,prefix,vars){
                     byId(json[i]["id"]).value=json["obj"].val;
 
             var item,ddl='';
-            l=json['&main.a.&object.&object_reqs.&editreq_reference'].typ;
-            for(i in l)
-                for(j in f)
-                    if(f[j].p==prefix && f[j].Field==l[i]){ // If we got this requisite on the panel
-                        item=byId(f[j].i).innerHTML; // Fetch the DDL item template
-                        ddl=item.replace(':id:','').replace(':val:','').replace(':selected:',''); // The first option is empty
-                        h='&main.a.&object.&object_reqs.&editreq_reference.&add_obj_ref_reqs';
-                        for(k in json[h].id)
-                            if(l[i]==json[h].r[k])
-                                ddl+=item.replace(':id:',json[h]['id'][k])
-                                        .replace(':selected:',json[h]['selected'][k])
-                                        .replace(':val:',json[h]['val'][k]);
-                        byId(f[j].i).innerHTML=ddl;
-                    }
-            if(json['&main.a.&object'].up!=1){
-                byId('confirm_'+prefix).innerHTML=byId('confirm_'+prefix).innerHTML.replace(':parent:',json['&main.a.&object'].up);
-                byId('PanelHead').innerHTML=' ('+json['&main.a.&object'].up+'): '+byId('PanelHead').innerHTML;
+            if(json['&main.a.&object.&object_reqs.&editreq_reference']){
+                l=json['&main.a.&object.&object_reqs.&editreq_reference'].typ;
+                for(i in l)
+                    for(j in f)
+                        if(f[j].p==prefix && f[j].Field==l[i]){ // If we got this requisite on the panel
+                            item=byId(f[j].i).innerHTML; // Fetch the DDL item template
+                            ddl=item.replace(':id:','').replace(':val:','').replace(':selected:',''); // The first option is empty
+                            h='&main.a.&object.&object_reqs.&editreq_reference.&add_obj_ref_reqs';
+                            for(k in json[h].id)
+                                if(l[i]==json[h].r[k])
+                                    ddl+=item.replace(':id:',json[h]['id'][k])
+                                            .replace(':selected:',json[h]['selected'][k])
+                                            .replace(':val:',json[h]['val'][k]);
+                            byId(f[j].i).innerHTML=ddl;
+                        }
+            }
+            if(json.obj.parent!=1){
+                byId('confirm_'+prefix).innerHTML=byId('confirm_'+prefix).innerHTML.replace(':parent:',json.obj.parent);
+                byId('PanelHead').innerHTML=' ('+json.obj.parent+'): '+byId('PanelHead').innerHTML;
             }
             break;
 
@@ -425,7 +493,7 @@ function myApi(m,u,b,prefix,vars){
             break;
 
         case 'FormPanels':
-            var id,field,fields,typ,chart,origtype,rep,base,color,bgcolor,filter,PanelID,ctrl;
+            var id,field,fields,typ,chart,origtype,rep,base,color,bgcolor,filter,PanelID,ctrl,val;
             ddlItem=byId(':fid:').innerHTML;
             l=json['&main.a.&uni_obj.&uni_obj_parent'];
             if(l.tid==137)
@@ -471,20 +539,21 @@ function myApi(m,u,b,prefix,vars){
                             }
                 }
                 if(id!=0) // In case we have an object requested, fetch its details
-                    myApi('GET','edit_obj/'+id,'FillPanel',PanelID); // and fill in its fields
+                    myApi('GET','edit_obj/'+id+'?JSON','FillPanel',PanelID); // and fill in its fields
                 rep=json.reqs[PanelID]["ref_161"]===undefined?'':json.reqs[PanelID]["ref_161"].split(':').pop();
                 if((rep!='')&&edit)
-        		    myApi('GET','object/28?F_U='+rep+'&F_107=!%&PanelID='+PanelID,'RepCols', PanelID);
+        		    myApi('GET','object/28?JSON&F_U='+rep+'&F_107=!%&PanelID='+PanelID,'RepCols', PanelID);
                 h+=l.replace(/:id:/g,PanelID)
                     .replace(':src:',typ)
-                    .replace(':val:',json['&main.a.&uni_obj.&uni_obj_all'].val[i])
+                    .replace(':val:',json.object[i].val)
                     .replace(/:type:/g,typ)
+                    .replace(/:up:/gm,params['F_U']||1)
                     .replace(/:addFieldClass:/g,chart?'hidden':'')
                     .replace(':object:',(typ&&t[typ])?t[typ].v:chart?charts[chart].descr:'--')
                     .replace(':reportID:',rep==''?'--':json.reqs[PanelID]['ref_161'].substring(3)) // Report ID
                     .replace(':report:',rep==''?'--':json.reqs[PanelID][161]); // Report name
 				if(json['&object_reqs'][PanelID][3].indexOf('(0)')==-1)
-        		    myApi('GET','object/150?F_U='+PanelID,'Buttons',PanelID);
+        		    myApi('GET','object/150?JSON&F_U='+PanelID,'Buttons',PanelID);
 				// Check if we're a requisite (we should have a parent record then)
 				origtype=0;
                 for(j in r)
@@ -495,12 +564,20 @@ function myApi(m,u,b,prefix,vars){
                             break;
                         }
                 // Insert the Object edit control
-                if(typ)
-                    h=h.replace(':ObjectEdit:',byId('_short').innerHTML.replace(':fid:',id==0?PanelID:id))
-                        .replace('_short','')
-                        .replace(':val:','')
+                if(typ){
+                    if(t[typ].t===9)
+                        val=defaults('[TODAY]');
+                    else if(t[typ].t===4)
+                        val=defaults('[NOW]');
+                    else
+                        val='';
+                    h=h.replace(':ObjectEdit:',byId('_obj').innerHTML.replace(':fid:',id==0?PanelID:id))
+                        .replace('_obj','')
+                        .replace(':val:',val)
+                        .replace(':placeholder:',json.object[i].val)
 						.replace(/:panel:/g,PanelID)
                         .replace(/:typ:/g,typ);
+                }
                 else // Remove the object edit form in case we have no Object set
                     h=h.replace(':ObjectEdit:','');
                 // Draw the panel
@@ -509,9 +586,9 @@ function myApi(m,u,b,prefix,vars){
                 if(origtype){ // We need a parent
                     byId('Button_'+PanelID).disabled=true; // Disable the controls until we check the parent
                     if(params['up']) // We have a parent set in UP
-                        myApi('GET','object/'+typ+'/?F_U='+params['up'],'Parent',PanelID);
+                        myApi('GET','object/'+typ+'/?JSON&F_U='+params['up'],'Parent',PanelID);
                     else if(params['F_'+j]) // or by the type code filter
-                        myApi('GET','object/'+typ+'/?F_U='+params['F_'+j],'Parent',PanelID);
+                        myApi('GET','object/'+typ+'/?JSON&F_U='+params['F_'+j],'Parent',PanelID);
                 }
                 // Fill in the Panel's fields
                 h=fields=ctrl='';
@@ -575,7 +652,7 @@ function myApi(m,u,b,prefix,vars){
                         }
                         else if(r[typ][k].r){ // This is a reference
 							if(id==0){
-								myApi('GET','object/'+t[r[typ][k].t].t,'FillDDL',f[j].i);
+								myApi('GET','object/'+t[r[typ][k].t].t+'?JSON','FillDDL',f[j].i);
 								def[f[j].i]=defaults(r[typ][k].a,f[j].i); // Fetch and save the default value
 							}
                             fields+=field.replace(':Type:',f[j].Field)
@@ -601,18 +678,20 @@ function myApi(m,u,b,prefix,vars){
 				if(json['&object_reqs'][PanelID][6]!='')
 				    byId('next_act_'+PanelID).value=json['&object_reqs'][PanelID][6];
 				// Get the filter
-				filter=json['&object_reqs'][PanelID][7]==''?'':'?'+unEscapeHtml(json['&object_reqs'][PanelID][7])
-				filter+=window.location.search.replace('?',filter==''?'?':'&');
+				filter=json['&object_reqs'][PanelID][7]==''?'':unEscapeHtml(json['&object_reqs'][PanelID][7])
+				filter+=window.location.search.replace('?','&');
 				// Display the panel
 				if(chart){
 				    if(chart=='Pivot')
-                        myApi('GET','report/'+rep+filter,'Pivot',{'panel':PanelID,'config':json.reqs[PanelID][225]});
+                        myApi('GET','report/'+rep+'?JSON&'+filter,'Pivot',{'panel':PanelID,'config':json.reqs[PanelID][225]});
+				    else if(chart==='Radar')
+                        myApi('GET','report/'+rep+'?JSON&'+filter,'Radar',{'panel':PanelID,'config':json.reqs[PanelID][225]});
 				    else
-                        myApi('GET','report/'+rep+filter,'ShowChart',{'panel':PanelID,'chart':chart});
+                        myApi('GET','report/'+rep+'?JSON&'+filter,'ShowChart',{'panel':PanelID,'chart':chart});
 				    continue;
 				}
                 if(!typ){ // No Object chosen, display the report as is
-                    myApi('GET','report/'+rep+filter,'ShowReport',PanelID);
+                    myApi('GET','report/'+rep+'?JSON&'+filter,'ShowReport',PanelID);
                     byId('Panel_'+PanelID+'_Report').innerHTML='[Report_'+rep+']';
                     //byId('Panel_'+PanelID+'_Report').classList.remove('hidden');
                     byId('Panel_'+PanelID+'_Actions').innerHTML='';
@@ -620,7 +699,7 @@ function myApi(m,u,b,prefix,vars){
                 else{
                     byId('Panel_'+PanelID+'_Fields').innerHTML=fields;
                     if(rep)
-                        myApi('GET','report/'+rep+filter,'InsertReportValues',PanelID);
+                        myApi('GET','report/'+rep+'?JSON&'+filter,'InsertReportValues',PanelID);
                 }
                 // Append the requisites to the dropdown list in the form to add a field
                 if(byId(typ)&&edit){
@@ -741,7 +820,7 @@ function savePivot(i){
     //delete some values which will not serialize to JSON
     delete config["aggregators"];
     delete config["renderers"];
-    myApi('POST','_m_set/'+i+'?t225='+JSON.stringify(config),'savePivot',i);
+    myApi('POST','_m_set/'+i+'?JSON&t225='+JSON.stringify(config),'savePivot',i);
 }
 (function($,window){
     var adjustAnchor=function(){
@@ -758,12 +837,6 @@ var edit=false;
 <!-- Begin:_Edit -->//{_request_.edit}
 edit=true;
 <!-- End:_Edit -->
-if('{_global_.id}'==='')
-    edit=true;
-else
-    myApi('GET','object/138?F_U={_global_.id}','FormPanels');
-if(edit)
-    myApi('GET','object/137','FormsList');
 var f=[];
 <!-- Begin:intFormFields -->
 f.push({i:{FieldID},p:{PanelID},Field:{Field},FieldAlias:"{FieldAlias}",ReportField:"{ReportField}",ReportFieldAlias:"{ReportFieldAlias}",FieldValue:"{default}"});
@@ -790,23 +863,24 @@ bt[1]="_array";bt[3]="_short";bt[12]="_memo";bt[2]="_html";bt[8]="_chars";bt[10]
 <div id="OneForm" style="display:none;">
 <div id="one" class="mt-3 mb-4">
 <center>
-    <h4 class="ml-5 mr-5" id="Title">
-        :val:
+    <h4 class="editables ml-5 mr-5">
+        <span id="Title" onclick="editFld(this)" class="flds fld-name">:val:</span>
+        <input type="text" name="t137" placeholder="Название формы" class="form-control flds fld-input h4-input" onfocusout="editFld(this,{_global_.id})" onchange="editFld(this,{_global_.id})" style="display:none">
         <!-- Begin:_Run --><!--{_request_.edit}-->
         <a target=":val:" href="/{_global_.z}/form/{_global_.id}" id="runForm"><img class="icon8 ml-2 p-2" title="Запустить в новом окне" src="https://img.icons8.com/ios/25/aaaaaa/play.png"></a>
         <!-- End:_Run -->
     </h4>
 </center>
 </div>
-<div id="FormPanels" class="row">
-<div id=":id:" class="alert alert-default mr-3 i-panel" source-type=":src:" style="display:inline-block; border-color:lightgray;">
+<div id="FormPanels" class="">
+<div id=":id:" class="alert alert-default m-2 i-panel" source-type=":src:" style="display:inline-block; border-color:lightgray;">
 <div id="Panel_:id:_Buttons" style="display:none;">
     <a href="/{_global_.z}/:btn_action:"><input type="submit" class="btn :btn_class:" style="margin-right:10px;margin-bottom:10px;" value=":btn_name:"></a>
 </div>
 <form method="post" id="Form_:id:" action="/{_global_.z}/_m_new/:typ:" enctype="multipart/form-data" onsubmit="if(check(':id:',':typ:'))btn.disabled=true;else{event.preventDefault?event.preventDefault():(event.returnValue=false);}">
-    <input type="hidden" id="up_:id:" name="up" value="1">
+    <input type="hidden" id="up_:id:" name="up" value=":up:">
     <input type="hidden" name="_xsrf" value="{_global_.xsrf}">
-    <input type="hidden" id="next_act_:id:" name="next_act" value="{_global_.action}/{_global_.id}?new=:typ:">
+    <input type="hidden" id="next_act_:id:" name="next_act" value="{_global_.action}/{_global_.id}?new=:typ:&F_U=:up:&">
     <table class="w-100 t9n">
     <tr>
     <td>
@@ -815,11 +889,12 @@ bt[1]="_array";bt[3]="_short";bt[12]="_memo";bt[2]="_html";bt[8]="_chars";bt[10]
             :&nbsp;<a target="_blank" href="/{_global_.z}/sql/:reportID:">:report:</a>
         </p>
         <!-- End:_PanelType -->
-        <h4 id="PanelHead">:val:
-        <!-- Begin:_PanelHead --><!--{_request_.edit}-->
-        <a onclick="post('_m_up/:id:?next_act={_global_.action}/{_global_.id}%3Fedit%26')" title="<t9n>[RU]Переместить панель выше[EN]Move panel up</t9n>"><img class="icon8 p-2" src="https://img.icons8.com/ios/25/6c757d/up.png"/></a>
-        <a class="del-panel" onclick="post('_m_del/:id:?next_act={_global_.action}/{_global_.id}%3Fedit%26')" title="<t9n>[RU]Удалить панель[EN]Delete the panel</t9n>"><img class="icon8 p-2" src="https://img.icons8.com/ios/25/6c757d/delete-sign.png"/></a>
-        <!-- End:_PanelHead -->
+        <h4 class="editables"><span id="PanelHead" onclick="editFld(this)" class="flds fld-name">:val:</span>
+            <input type="text" name="t138" placeholder="Название панели" class="form-control flds fld-input h4-input" onfocusout="editFld(this,:id:)" onchange="editFld(this,:id:)" style="display:none">
+            <!-- Begin:_PanelHead --><!--{_request_.edit}-->
+            <a onclick="post('_m_up/:id:?next_act={_global_.action}/{_global_.id}%3Fedit%26')" title="<t9n>[RU]Переместить панель выше[EN]Move panel up</t9n>"><img class="icon8 p-2" src="https://img.icons8.com/ios/25/6c757d/up.png"/></a>
+            <a class="del-panel" onclick="post('_m_del/:id:?next_act={_global_.action}/{_global_.id}%3Fedit%26')" title="<t9n>[RU]Удалить панель[EN]Delete the panel</t9n>"><img class="icon8 p-2" src="https://img.icons8.com/ios/25/6c757d/delete-sign.png"/></a>
+            <!-- End:_PanelHead -->
         </h4>
         :ObjectEdit:
     </td>
@@ -848,17 +923,17 @@ bt[1]="_array";bt[3]="_short";bt[12]="_memo";bt[2]="_html";bt[8]="_chars";bt[10]
         <div id="controls_:id:" style="display:none;">
         	<table style="margin-top:5px; margin-bottom:5px;">
         	<tr>
-        	<td><input type="submit" name="btn" class="btn btn-sm btn-outline-secondary m-3" value="<t9n>[RU]Сохранить[EN]Save</t9n>"></td>
+        	<td><input type="submit" name="btn" class="btn btn-sm btn-outline-secondary m-2" value="<t9n>[RU]Сохранить[EN]Save</t9n>"></td>
         	<td>
-            <button type="button" class="btn btn-warning btn-sm m-3" onclick="byId('controls_:id:').style.display='none';byId('confirm_:id:').style.display='block';"><t9n>[RU]Удалить[EN]Delete</t9n></button>
+            <button type="button" class="btn btn-warning btn-sm m-2" onclick="byId('controls_:id:').style.display='none';byId('confirm_:id:').style.display='block';"><t9n>[RU]Удалить[EN]Delete</t9n></button>
         	</td>
-        	<td><a href="/{_global_.z}/{_global_.action}/{_global_.id}"><button type="button" class="btn btn-sm btn-outline-secondary m-3"><t9n>[RU]Создать ещё[EN]Create new</t9n>...</button></a>
+        	<td><a href="/{_global_.z}/{_global_.action}/{_global_.id}?F_U=:up:"><button type="button" class="btn btn-sm btn-outline-secondary m-2"><t9n>[RU]Создать ещё[EN]Create new</t9n>...</button></a>
         	</tr>
         	</table>
     	</div>
         <div id="confirm_:id:" style="display:none; border:2px #f0ad4e solid; -moz-border-radius: 10px; -webkit-border-radius:10px; -khtml-border-radius:10px; border-radius:10px; padding:6px; ">
     	<p><b><t9n>[RU]Подтвердите удаление записи[EN]Confirm to delete</t9n></b></p>
-    	<A onclick="post('_m_del/:obj:?next_act={_global_.action}/{_global_.id}%3Fdeleted=:typ:%26up=:parent:')"><button type="button" class="btn btn-warning btn-sm m-3"><t9n>[RU]Да, удалить[EN]Yes, delete</t9n></button></A>
+    	<A onclick="post('_m_del/:obj:?next_act={_global_.action}/{_global_.id}%3Fdeleted=:typ:%26F_U=:parent:')"><button type="button" class="btn btn-warning btn-sm m-3"><t9n>[RU]Да, удалить[EN]Yes, delete</t9n></button></A>
     	<button type="button" class="btn btn-outline-secondary btn-sm m-3" onclick="byId('controls_:id:').style.display='block';byId('confirm_:id:').style.display='none';">&nbsp;<t9n>[RU]Отменить[EN]Cancel</t9n>&nbsp;</button>
     	</div>
     </div>	
@@ -880,6 +955,10 @@ bt[1]="_array";bt[3]="_short";bt[12]="_memo";bt[2]="_html";bt[8]="_chars";bt[10]
     </div>
 </form>
 <!-- End:_AddField -->
+<div class="f-styles mt-2" style="display:none">
+    <span class="f-styles-toggle" onclick="$(this).closest('.f-styles').find('.f-styles-input').toggle(200)">Стили блока диаграммы</span>
+    <textarea class="form-control mt-1 f-styles-input" style="display:none" onchange="saveConfig(this)"></textarea>
+</div>
 </div> <!--/Panel-->
 </div> <!--/Panels-->
 </div> <!--/OneForm-->
@@ -906,6 +985,35 @@ bt[1]="_array";bt[3]="_short";bt[12]="_memo";bt[2]="_html";bt[8]="_chars";bt[10]
 </form>
 </div>
 <script>
+function saveDone(json,el){
+    if(json.obj){
+        $(el).closest('.editables').find('.flds').toggle();
+        $(el).removeClass('saving');
+    }
+}
+function editFld(el,i){
+    if($(el).hasClass('fld-input')){
+        if(!el.value)
+            return $(el).addClass('err');
+        if($(el).hasClass('saving'))
+            return;
+        $(el).removeClass('err');
+        if(el.value!==$(el).attr('old-val')){
+            var fd=new FormData();
+        	fd.append($(el).attr('name'),el.value);
+            $(el).addClass('saving');
+            $(el).closest('.editables').find('.fld-name').html(el.value);
+            return newApi('POST','_m_save/'+i+'?JSON','saveDone',fd,el);
+        }
+        $(el).closest('.editables').find('.flds').toggle();
+    }
+    else{
+        $(el).closest('.editables').find('.flds').toggle();
+        $(el).closest('.editables').find('.fld-input').val($(el).html());
+        $(el).closest('.editables').find('.fld-input').attr('old-val',$(el).html());
+        $(el).closest('.editables').find('.fld-input').focus();
+    }
+}
 function validatePanel(){
     if(byId('PanelType').value=='' && byId('PanelReport').value==''){
         alert(t9n('[RU]Выберите тип или запрос[EN]Pick a Type or Report</t9n>!'));
@@ -918,6 +1026,15 @@ function validatePanel(){
     if(byId('PanelName').value=='')
         byId('PanelName').value=parseInt(byId('PanelType').value)?byId(byId('PanelType').value).innerHTML:byId(byId('PanelReport').value).innerHTML;
     return true;
+}
+function saveConfigDone(json,vars){
+    $('#chartdiv'+vars.i).attr('style',vars.config);
+}
+function saveConfig(el){
+    const i=$(el).closest('.i-panel').attr('id');
+    var fd=new FormData();
+	fd.append('t225',el.value);
+    newApi('POST','_m_save/'+i+'?JSON','saveConfigDone',fd,{i:i,config:el.value});
 }
 function pickColor(el,panel){
     if(el.value){
@@ -957,6 +1074,7 @@ byId('PanelType').innerHTML=h;
 </TR>
 </TABLE>
 </div>
+<div id="_obj"><input class="form-control form-control-sm type-field" type="text" id=":fid:_obj" name="t:typ:" value=":val:" placeholder=":placeholder:"></div>
 <div id="_array"><div style="margin:5px;"><A id=":fid:_array" href="/{_global_.z}/object/:typ:/?F_U=:parent:"><B>(:val:)</B></A></div></div>
 <div id="_short"><input class="form-control form-control-sm type-field" type="text" id=":fid:_short" name="t:typ:" value=":val:"></div>
 <div id="_memo"><TEXTAREA class="form-control form-control-sm type-field" id=":fid:_memo" name="t:typ:" ROWS=2>:val:</TEXTAREA></div>
@@ -964,7 +1082,7 @@ byId('PanelType').innerHTML=h;
 <div id="_chars"><input class="form-control form-control-sm type-field" type="text" id=":fid:_chars" name="t:typ:" value=":val:"></div>
 <div id="_file">:val: <input class="form-control form-control-sm type-field" type="file" id=":fid:_file" name="t:typ:" value=""></div>
 <div id="_date"><input class="form-control form-control-sm type-field" type="text" id=":fid:_date" name="t:typ:" value=":val:"></div>
-<div id="_datetime"><input class="form-control form-control-sm type-field" type="text" id=":fid:_datetime" name="t:typ:" value=":val:"></div>
+<div id="_datetime"><input class="form-control form-control-sm type-field" type="text" id=":fid:_datetime" name="t:typ:" value=":val:" onfocus="setDT(this)"></div>
 <div id="_signed"><input class="form-control form-control-sm type-field" type="text" id=":fid:_signed" name="t:typ:" value=":val:"></div>
 <div id="_boolean"><div style="margin:5px;"><input type="checkbox" id=":fid:_boolean" name="t:typ:" value="1" class="type-field" :checked:/><input type="hidden" name="b:typ:" value="1"></div></div>
 <div id="_number"><input class="form-control form-control-sm type-field" type="text" id=":fid:_number" name="t:typ:" value=":val:"></div>
@@ -1047,11 +1165,19 @@ byId('PanelType').innerHTML=h;
     </t9n>
 </div>
 </div>
-<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-<link rel="stylesheet" href="/css/pivot.min.css" integrity="sha512-BDStKWno6Ga+5cOFT9BUnl9erQFzfj+Qmr5MDnuGqTQ/QYDO1LPdonnF6V6lBO6JI13wg29/XmPsufxmCJ8TvQ==" crossorigin="anonymous" />
+<script src="/js/core.js"></script>
+<script src="/js/charts.js"></script>
+<script src="/js/animated.js"></script>
+<link rel="stylesheet" href="/css/pivot.min.css">
 
 <script src="/js/plotly.min.js"></script>
-<script src="/js/pivot.min.js" integrity="sha512-XgJh9jgd6gAHu9PcRBBAp0Hda8Tg87zi09Q2639t0tQpFFQhGpeCgaiEFji36Ozijjx9agZxB0w53edOFGCQ0g==" crossorigin="anonymous"></script>
-<script src="/js/plotly_renderers.min.js" integrity="sha512-nGY6wbyP3gWxAjsZwsjWahe9nKLCTTyTLn1dpwuNHb9CKLjogHAMVIbbr4wNYL0dKOsWTCrlpx9RDY+bB1MFrQ==" crossorigin="anonymous"></script>
+<script src="/js/pivot.min.js"></script>
+<script src="/js/plotly_renderers.min.js"></script>
+<script>
+if('{_global_.id}'==='')
+    edit=true;
+else
+    myApi('GET','object/138?JSON&F_U={_global_.id}','FormPanels');
+if(edit)
+    myApi('GET','object/137?JSON','FormsList');
+</script>
