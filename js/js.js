@@ -113,3 +113,56 @@ function decodeMeta(json){
 function validateEmail(email){
     return (email||'').match(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
 }
+// Функция для объединения повторяющихся вертикально ячеек в первой и второй колонке таблицы
+function mergeCells(tableId){
+    var table=byId(tableId);
+    if(!table){
+        console.error('Table with id "'+tableId+'" not found');
+        return;
+    }
+    var rows=table.rows;
+    if(rows.length<2){
+        return; // Нечего объединять
+    }
+    // Обрабатываем первую и вторую колонки (индексы 0 и 1)
+    for(var colIndex=0;colIndex<=1;colIndex++){
+        var i=0;
+        while(i<rows.length){
+            var currentCell=rows[i].cells[colIndex];
+            if(!currentCell){
+                i++;
+                continue;
+            }
+            var currentText=currentCell.textContent.trim();
+            var spanCount=1;
+            var j=i+1;
+            // Считаем количество последовательных ячеек с одинаковым содержимым
+            while(j<rows.length){
+                var nextCell=rows[j].cells[colIndex];
+                if(!nextCell){
+                    break;
+                }
+                var nextText=nextCell.textContent.trim();
+                if(nextText===currentText){
+                    spanCount++;
+                    j++;
+                }else{
+                    break;
+                }
+            }
+            // Если найдено более одной одинаковой ячейки, объединяем их
+            if(spanCount>1){
+                currentCell.rowSpan=spanCount;
+                currentCell.style.verticalAlign='middle';
+                // Удаляем дублирующиеся ячейки
+                for(var k=i+1;k<i+spanCount;k++){
+                    var cellToRemove=rows[k].cells[colIndex];
+                    if(cellToRemove){
+                        cellToRemove.parentNode.removeChild(cellToRemove);
+                    }
+                }
+            }
+            i=j;
+        }
+    }
+}
