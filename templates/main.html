@@ -64,8 +64,8 @@
             border: none;
             box-shadow: var(--shadow-lg);
             border-radius: 8px;
-            padding: 8px;
-            margin-top: 8px;
+            padding: 4px;
+            margin-top: 4px;
         }
 
         .dropdown-item {
@@ -81,16 +81,16 @@
 
         /* Content area */
         .content {
-            padding-top: 60px;
-            margin-bottom: 32px;
-            min-height: calc(100vh - 120px);
+            padding-top: 50px;
+            margin-bottom: 16px;
+            min-height: calc(100vh - 80px);
         }
 
         /* Footer */
         .footer {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
             box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-            padding: 8px 16px;
+            padding: 4px 8px;
         }
 
         /* Password change modal */
@@ -104,7 +104,7 @@
         .cp-form input {
             border-radius: 8px;
             border: 1px solid var(--border-color) !important;
-            padding: 10px 12px;
+            padding: 6px 8px;
             transition: all 0.2s ease;
         }
 
@@ -253,12 +253,12 @@
             <h5><t9n>[RU]Смена пароля[EN]Password change</t9n></h5>
         </div>
         <div id="pwdchangemsg" class="alert w-100" style="display: none;"></div>
-        <label for="old-pwd" class="mb-2 font-weight-medium"><t9n>[RU]Действующий пароль[EN]Current password</t9n></label>
-        <input type="password" id="old-pwd" class="form-control mb-3">
-        <label for="new-pwd" class="mb-2 font-weight-medium"><t9n>[RU]Новый пароль[EN]New password</t9n></label>
-        <input type="password" id="new-pwd" class="form-control mb-3">
-        <label for="new-again" class="mb-2 font-weight-medium"><t9n>[RU]Повторите пароль[EN]Repeat password</t9n></label>
-        <input type="password" id="new-again" class="form-control mb-3">
+        <label for="old-pwd" class="mb-1 font-weight-medium"><t9n>[RU]Действующий пароль[EN]Current password</t9n></label>
+        <input type="password" id="old-pwd" class="form-control mb-2">
+        <label for="new-pwd" class="mb-1 font-weight-medium"><t9n>[RU]Новый пароль[EN]New password</t9n></label>
+        <input type="password" id="new-pwd" class="form-control mb-2">
+        <label for="new-again" class="mb-1 font-weight-medium"><t9n>[RU]Повторите пароль[EN]Repeat password</t9n></label>
+        <input type="password" id="new-again" class="form-control mb-2">
         <div class="row pt-3">
             <div class="col-12 text-center">
                 <span><img class="wait-toggle" style="display:none;" src="/i/ajax.gif"></span>
