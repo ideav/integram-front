@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Test mergeCells Function</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #000;
+        }
+        td, th {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        h2 {
+            margin-top: 30px;
+        }
+        .test-section {
+            margin-bottom: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+    </style>
+    <script src="../js/js.js"></script>
+</head>
+<body>
+    <h1>Тестирование функции mergeCells</h1>
+
+    <div class="test-section">
+        <h2>Тест 1: Простое объединение ячеек</h2>
+        <p>Таблица с повторяющимися значениями в первой и второй колонках:</p>
+        <button onclick="mergeCells('test1')">Объединить ячейки</button>
+        <table id="test1">
+            <thead>
+                <tr>
+                    <th>Категория</th>
+                    <th>Подкатегория</th>
+                    <th>Товар</th>
+                    <th>Цена</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Фрукты</td>
+                    <td>Цитрусовые</td>
+                    <td>Апельсин</td>
+                    <td>50</td>
+                </tr>
+                <tr>
+                    <td>Фрукты</td>
+                    <td>Цитрусовые</td>
+                    <td>Лимон</td>
+                    <td>60</td>
+                </tr>
+                <tr>
+                    <td>Фрукты</td>
+                    <td>Цитрусовые</td>
+                    <td>Грейпфрут</td>
+                    <td>70</td>
+                </tr>
+                <tr>
+                    <td>Фрукты</td>
+                    <td>Ягоды</td>
+                    <td>Клубника</td>
+                    <td>120</td>
+                </tr>
+                <tr>
+                    <td>Фрукты</td>
+                    <td>Ягоды</td>
+                    <td>Малина</td>
+                    <td>150</td>
+                </tr>
+                <tr>
+                    <td>Овощи</td>
+                    <td>Корнеплоды</td>
+                    <td>Морковь</td>
+                    <td>30</td>
+                </tr>
+                <tr>
+                    <td>Овощи</td>
+                    <td>Корнеплоды</td>
+                    <td>Свекла</td>
+                    <td>25</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>Тест 2: Множественные повторения</h2>
+        <p>Таблица с большим количеством повторений (более 2 раз):</p>
+        <button onclick="mergeCells('test2')">Объединить ячейки</button>
+        <table id="test2">
+            <thead>
+                <tr>
+                    <th>Регион</th>
+                    <th>Город</th>
+                    <th>Магазин</th>
+                    <th>Продажи</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Север</td>
+                    <td>Москва</td>
+                    <td>Магазин 1</td>
+                    <td>1000</td>
+                </tr>
+                <tr>
+                    <td>Север</td>
+                    <td>Москва</td>
+                    <td>Магазин 2</td>
+                    <td>1500</td>
+                </tr>
+                <tr>
+                    <td>Север</td>
+                    <td>Москва</td>
+                    <td>Магазин 3</td>
+                    <td>1200</td>
+                </tr>
+                <tr>
+                    <td>Север</td>
+                    <td>Москва</td>
+                    <td>Магазин 4</td>
+                    <td>900</td>
+                </tr>
+                <tr>
+                    <td>Север</td>
+                    <td>Санкт-Петербург</td>
+                    <td>Магазин 5</td>
+                    <td>800</td>
+                </tr>
+                <tr>
+                    <td>Север</td>
+                    <td>Санкт-Петербург</td>
+                    <td>Магазин 6</td>
+                    <td>950</td>
+                </tr>
+                <tr>
+                    <td>Юг</td>
+                    <td>Сочи</td>
+                    <td>Магазин 7</td>
+                    <td>700</td>
+                </tr>
+                <tr>
+                    <td>Юг</td>
+                    <td>Сочи</td>
+                    <td>Магазин 8</td>
+                    <td>650</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>Тест 3: Без повторений</h2>
+        <p>Таблица без повторяющихся значений (ничего не должно измениться):</p>
+        <button onclick="mergeCells('test3')">Объединить ячейки</button>
+        <table id="test3">
+            <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Фамилия</th>
+                    <th>Возраст</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Иван</td>
+                    <td>Иванов</td>
+                    <td>25</td>
+                </tr>
+                <tr>
+                    <td>Петр</td>
+                    <td>Петров</td>
+                    <td>30</td>
+                </tr>
+                <tr>
+                    <td>Сидор</td>
+                    <td>Сидоров</td>
+                    <td>35</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>Тест 4: Смешанные повторения</h2>
+        <p>Таблица со смешанными случаями повторений:</p>
+        <button onclick="mergeCells('test4')">Объединить ячейки</button>
+        <table id="test4">
+            <thead>
+                <tr>
+                    <th>Отдел</th>
+                    <th>Проект</th>
+                    <th>Задача</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>IT</td>
+                    <td>Сайт</td>
+                    <td>Дизайн</td>
+                    <td>Готово</td>
+                </tr>
+                <tr>
+                    <td>IT</td>
+                    <td>Сайт</td>
+                    <td>Разработка</td>
+                    <td>В процессе</td>
+                </tr>
+                <tr>
+                    <td>IT</td>
+                    <td>Приложение</td>
+                    <td>Тестирование</td>
+                    <td>Готово</td>
+                </tr>
+                <tr>
+                    <td>Маркетинг</td>
+                    <td>Реклама</td>
+                    <td>Планирование</td>
+                    <td>Запланировано</td>
+                </tr>
+                <tr>
+                    <td>Маркетинг</td>
+                    <td>Реклама</td>
+                    <td>Запуск</td>
+                    <td>В процессе</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        console.log('Test page loaded. Click buttons to test mergeCells function.');
+    </script>
+</body>
+</html>
