@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест копирования контактов в буфер обмена</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #3b82f6;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background);
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .instructions {
+            background-color: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            color: #92400e;
+        }
+
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .test-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .kanban-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.2s;
+            position: relative;
+            min-height: 120px;
+        }
+
+        .kanban-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .kanban-card-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .kanban-card-field {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .kanban-card-field-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .kanban-card-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-top: 8px;
+        }
+
+        .kanban-card-contacts {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .kanban-card-contact-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .kanban-card-contact-icon.active {
+            background-color: rgba(59, 130, 246, 0.25);
+            color: rgba(59, 130, 246, 0.7);
+            cursor: pointer;
+        }
+
+        .kanban-card-contact-icon.active:hover {
+            background-color: rgba(37, 99, 235, 0.35);
+            color: rgba(37, 99, 235, 0.9);
+            transform: scale(1.1);
+        }
+
+        .kanban-card-contact-icon.inactive {
+            background-color: rgba(226, 232, 240, 0.5);
+            color: rgba(148, 163, 184, 0.5);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .kanban-card-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: right;
+            margin-top: 8px;
+        }
+
+        .clipboard-feedback {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #10b981;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест копирования контактов в буфер обмена</h1>
+    <div class="description">
+        <strong>Цель теста:</strong> Проверить функциональность копирования контактной информации (телефон и email) в буфер обмена при клике на соответствующие иконки.
+    </div>
+
+    <div class="instructions">
+        <h3>📋 Инструкция по тестированию</h3>
+        <ul>
+            <li><strong>Кликните на иконку 📞</strong> - номер телефона должен скопироваться в буфер обмена</li>
+            <li><strong>Кликните на иконку 📧</strong> - email должен скопироваться в буфер обмена</li>
+            <li>После клика иконка должна временно измениться на <strong>✓</strong> с зеленым фоном</li>
+            <li>Через 1.5 секунды иконка должна вернуться в исходное состояние</li>
+            <li><strong>Серые иконки</strong> (без контактной информации) должны быть неактивными</li>
+            <li>После копирования попробуйте вставить текст (Ctrl+V / Cmd+V) в любое поле ввода для проверки</li>
+        </ul>
+    </div>
+
+    <div class="clipboard-feedback" id="clipboardFeedback">
+        <strong>✓ Скопировано в буфер обмена</strong>
+    </div>
+
+    <div class="test-cards-container" id="testCards"></div>
+
+    <script>
+        // Test data from experiments/kanban-data/tasks-with-contacts.json
+        var testTasks = [
+            {
+                "Лид": "Интеграм",
+                "Статус": "Лид",
+                "Примечание": "50 лицензий",
+                "Телефон": "+7 (495) 123-45-67",
+                "Email": "alexey@integram.example.com",
+                "Контактное лицо": "Алексей",
+                "Сумма": "1 410 000",
+                "Дата": "2025-12-13",
+                "ЛидID": "3001",
+                "СтатусID": "3689"
+            },
+            {
+                "Лид": "Ромашка",
+                "Статус": "Презентация / демо",
+                "Примечание": "10 лицензий",
+                "Телефон": "+7 (495) 234-56-78",
+                "Email": "",
+                "Контактное лицо": "Алексей",
+                "Сумма": "141 000",
+                "Дата": "2025-12-11",
+                "ЛидID": "3002",
+                "СтатусID": "2849"
+            },
+            {
+                "Лид": "Эллипс",
+                "Статус": "Согласование",
+                "Примечание": "5 лицензий",
+                "Телефон": "",
+                "Email": "contact@ellips.example.com",
+                "Контактное лицо": "Алексей",
+                "Сумма": "70 500",
+                "Дата": "2025-12-10",
+                "ЛидID": "3003",
+                "СтатусID": "2843"
+            },
+            {
+                "Лид": "Вектор",
+                "Статус": "Триал / апробация",
+                "Примечание": "",
+                "Телефон": "",
+                "Email": "",
+                "Контактное лицо": "Виктор",
+                "Сумма": "",
+                "Дата": "2025-12-09",
+                "ЛидID": "3004",
+                "СтатусID": "2806"
+            },
+            {
+                "Лид": "Вундер-ваффер гмбх",
+                "Статус": "Закрытие сделки",
+                "Примечание": "",
+                "Телефон": "+49 30 12345678",
+                "Email": "info@wunderwaffe.de",
+                "Контактное лицо": "Виктор",
+                "Сумма": "600 000",
+                "Дата": "2025-12-08",
+                "ЛидID": "3005",
+                "СтатусID": "3697"
+            },
+            {
+                "Лид": "Лабеан",
+                "Статус": "Оплата",
+                "Примечание": "50 лицензий",
+                "Телефон": "+7 (812) 345-67-89",
+                "Email": "rim@labean.example.ru",
+                "Контактное лицо": "Рим",
+                "Сумма": "1 410 000",
+                "Дата": "2025-12-08",
+                "ЛидID": "3006",
+                "СтатусID": "3699"
+            }
+        ];
+
+        function renderCard(task){
+            var html = '<div class="kanban-card" draggable="true" data-lead-id="' + task['ЛидID'] + '" data-status-id="' + task['СтатусID'] + '">';
+            html += '<div class="kanban-card-title">' + (task['Лид'] || '') + '</div>';
+
+            if(task['Контактное лицо']){
+                html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> ' + task['Контактное лицо'] + '</div>';
+            }
+
+            if(task['Примечание']){
+                html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Примечание:</span> ' + task['Примечание'] + '</div>';
+            }
+
+            if(task['Сумма']){
+                html += '<div class="kanban-card-amount">' + task['Сумма'] + ' ₽</div>';
+            }
+
+            // Add contact icons at bottom right (vertically stacked)
+            html += '<div class="kanban-card-contacts">';
+
+            // Phone icon (on top)
+            var hasPhone = task['Телефон'] && task['Телефон'].trim() !== '';
+            if(hasPhone){
+                html += '<span class="kanban-card-contact-icon active" title="' + task['Телефон'] + '" onclick="copyContact(\'' + task['Телефон'] + '\', \'phone\', event)">📞</span>';
+            } else {
+                html += '<span class="kanban-card-contact-icon inactive" title="Телефон недоступен">📞</span>';
+            }
+
+            // Email icon (below)
+            var hasEmail = task['Email'] && task['Email'].trim() !== '';
+            if(hasEmail){
+                html += '<span class="kanban-card-contact-icon active" title="' + task['Email'] + '" onclick="copyContact(\'' + task['Email'] + '\', \'email\', event)">📧</span>';
+            } else {
+                html += '<span class="kanban-card-contact-icon inactive" title="Email недоступен">📧</span>';
+            }
+
+            // Date below contact icons (without "Дата:" label)
+            if(task['Дата']){
+                html += '<div class="kanban-card-date">' + task['Дата'] + '</div>';
+            }
+
+            html += '</div>';
+
+            html += '</div>';
+            return html;
+        }
+
+        // Copy contact to clipboard
+        function copyContact(value, type, event){
+            // Prevent card drag from starting
+            if(event){
+                event.stopPropagation();
+            }
+
+            // Copy to clipboard using the legacy method for compatibility
+            var $temp = $("<input>");
+            $("body").append($temp);
+            $temp.val(value).select();
+            document.execCommand("copy");
+            $temp.remove();
+
+            // Show visual feedback
+            var icon = event.target;
+            var originalText = icon.textContent;
+            var originalTitle = icon.title;
+
+            // Change icon to checkmark temporarily
+            icon.textContent = '✓';
+            icon.title = 'Скопировано в буфер';
+            icon.style.backgroundColor = 'rgba(34, 197, 94, 0.25)'; // Green background
+            icon.style.color = 'rgba(34, 197, 94, 0.9)'; // Green text
+
+            // Show global feedback
+            $('#clipboardFeedback').fadeIn(200).delay(1500).fadeOut(200);
+
+            // Restore original icon after 1.5 seconds
+            setTimeout(function(){
+                icon.textContent = originalText;
+                icon.title = originalTitle;
+                icon.style.backgroundColor = '';
+                icon.style.color = '';
+            }, 1500);
+
+            // Log to console for testing
+            console.log('Copied to clipboard:', type, '=', value);
+        }
+
+        // Render test cards
+        $(document).ready(function(){
+            var html = '';
+            testTasks.forEach(function(task){
+                html += renderCard(task);
+            });
+            $('#testCards').html(html);
+        });
+    </script>
+</body>
+</html>
