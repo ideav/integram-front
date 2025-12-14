@@ -5,3 +5,15 @@ Your forked repository: konard/integram-front
 Original repository (upstream): ideav/integram-front
 
 Proceed.
+
+---
+
+Issue to solve: https://github.com/ideav/integram-front/issues/28
+Your prepared branch: issue-28-a93d4b76584d
+Your prepared working directory: /tmp/gh-issue-solver-1765717099274
+Your forked repository: konard/ideav-integram-front
+Original repository (upstream): ideav/integram-front
+
+Proceed.
+
+Run timestamp: 2025-12-14T12:58:23.718Z
