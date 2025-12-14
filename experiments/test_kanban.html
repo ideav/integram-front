@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Канбан</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #3b82f6;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .kanban-board {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 20px;
+        }
+
+        .kanban-column {
+            min-width: 300px;
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            flex-shrink: 0;
+        }
+
+        .kanban-column-header {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+            font-weight: 600;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .kanban-column-count {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+        }
+
+        .kanban-column-body {
+            padding: 12px;
+            min-height: 200px;
+        }
+
+        .kanban-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            cursor: move;
+            transition: all 0.2s ease;
+        }
+
+        .kanban-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .kanban-card.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+        }
+
+        .kanban-column-body.drag-over {
+            background-color: rgba(37, 99, 235, 0.1);
+            border: 2px dashed var(--primary-color);
+            border-radius: 8px;
+        }
+
+        .kanban-card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .kanban-card-field {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .kanban-card-field-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .kanban-card-amount {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px;
+        }
+
+        .log-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 2px solid var(--border-color);
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            padding: 2px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .log-entry.success {
+            color: green;
+        }
+
+        .log-entry.error {
+            color: red;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Тест Канбан (локальные данные)</h1>
+    <div id="content"></div>
+    <div class="log-panel" id="log-panel">
+        <strong>Лог событий:</strong>
+        <div id="log-content"></div>
+    </div>
+
+    <script>
+        // Simulated global variables
+        var db = 'slider';
+        var xsrf = 'test-xsrf-token';
+
+        // Local test data
+        var kanbanData = [
+            {
+                "Лид": "Интеграм",
+                "Статус": "Лид",
+                "Примечание": "50 лицензий",
+                "Телефон": "",
+                "Email": "",
+                "Контактное лицо": "Алексей",
+                "Сумма": "1 410 000",
+                "Дата": "2025-12-13",
+                "ЛидID": "3001",
+                "СтатусID": "3689"
+            },
+            {
+                "Лид": "Ромашка",
+                "Статус": "Презентация / демо",
+                "Примечание": "10 лицензий",
+                "Телефон": "",
+                "Email": "",
+                "Контактное лицо": "Алексей",
+                "Сумма": "141 000",
+                "Дата": "2025-12-11",
+                "ЛидID": "3002",
+                "СтатусID": "2849"
+            },
+            {
+                "Лид": "Эллипс",
+                "Статус": "Согласование",
+                "Примечание": "5 лицензий",
+                "Телефон": "",
+                "Email": "",
+                "Контактное лицо": "Алексей",
+                "Сумма": "70 500",
+                "Дата": "2025-12-10",
+                "ЛидID": "3003",
+                "СтатусID": "2843"
+            },
+            {
+                "Лид": "Вектор",
+                "Статус": "Триал / апробация",
+                "Примечание": "",
+                "Телефон": "",
+                "Email": "",
+                "Контактное лицо": "Виктор",
+                "Сумма": "",
+                "Дата": "2025-12-09",
+                "ЛидID": "3004",
+                "СтатусID": "2806"
+            },
+            {
+                "Лид": "Вундер-ваффер гмбх",
+                "Статус": "Закрытие сделки",
+                "Примечание": "",
+                "Телефон": "",
+                "Email": "",
+                "Контактное лицо": "Виктор",
+                "Сумма": "600 000",
+                "Дата": "2025-12-08",
+                "ЛидID": "3005",
+                "СтатусID": "3697"
+            },
+            {
+                "Лид": "Лабеан",
+                "Статус": "Оплата",
+                "Примечание": "50 лицензий",
+                "Телефон": "",
+                "Email": "",
+                "Контактное лицо": "Рим",
+                "Сумма": "1 410 000",
+                "Дата": "2025-12-08",
+                "ЛидID": "3006",
+                "СтатусID": "3699"
+            }
+        ];
+
+        var statusesData = [
+            {"Статус": "Лид", "СтатусID": "3689"},
+            {"Статус": "Первичный контакт", "СтатусID": "3691"},
+            {"Статус": "Квалификация", "СтатусID": "3693"},
+            {"Статус": "Отправлено КП", "СтатусID": "3695"},
+            {"Статус": "Презентация / демо", "СтатусID": "2849"},
+            {"Статус": "Согласование", "СтатусID": "2843"},
+            {"Статус": "Триал / апробация", "СтатусID": "2806"},
+            {"Статус": "Закрытие сделки", "СтатусID": "3697"},
+            {"Статус": "Оплата", "СтатусID": "3699"},
+            {"Статус": "Повторная оплата", "СтатусID": "3701"},
+            {"Статус": "Отказ / срыв сделки", "СтатусID": "2824"}
+        ];
+
+        function log(message, type){
+            var logEntry = $('<div class="log-entry"></div>').addClass(type || '').text(new Date().toLocaleTimeString() + ': ' + message);
+            $('#log-content').append(logEntry);
+            $('#log-panel').scrollTop($('#log-panel')[0].scrollHeight);
+        }
+
+        function renderKanban(){
+            log('Начало отрисовки канбана', 'success');
+            var html = '<div class="kanban-board">';
+
+            statusesData.forEach(function(status){
+                var statusName = status['Статус'];
+                var statusId = status['СтатусID'];
+
+                var tasks = kanbanData.filter(function(task){
+                    return task['СтатусID'] === statusId;
+                });
+
+                html += '<div class="kanban-column">';
+                html += '<div class="kanban-column-header">';
+                html += '<span>' + statusName + '</span>';
+                html += '<span class="kanban-column-count">' + tasks.length + '</span>';
+                html += '</div>';
+                html += '<div class="kanban-column-body" data-status-id="' + statusId + '">';
+
+                tasks.forEach(function(task){
+                    html += renderCard(task);
+                });
+
+                html += '</div>';
+                html += '</div>';
+            });
+
+            html += '</div>';
+            $('#content').html(html);
+
+            log('Канбан отрисован успешно', 'success');
+            initDragAndDrop();
+        }
+
+        function renderCard(task){
+            var html = '<div class="kanban-card" draggable="true" data-lead-id="' + task['ЛидID'] + '" data-status-id="' + task['СтатусID'] + '">';
+            html += '<div class="kanban-card-title">' + (task['Лид'] || '') + '</div>';
+
+            if(task['Контактное лицо']){
+                html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> ' + task['Контактное лицо'] + '</div>';
+            }
+
+            if(task['Примечание']){
+                html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Примечание:</span> ' + task['Примечание'] + '</div>';
+            }
+
+            if(task['Дата']){
+                html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Дата:</span> ' + task['Дата'] + '</div>';
+            }
+
+            if(task['Сумма']){
+                html += '<div class="kanban-card-amount">' + task['Сумма'] + ' ₽</div>';
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function initDragAndDrop(){
+            log('Инициализация drag-and-drop', 'success');
+            var draggedElement = null;
+
+            $(document).on('dragstart', '.kanban-card', function(e){
+                draggedElement = this;
+                $(this).addClass('dragging');
+                e.originalEvent.dataTransfer.effectAllowed = 'move';
+                e.originalEvent.dataTransfer.setData('text/html', this.innerHTML);
+                log('Начато перетаскивание карточки: ' + $(this).find('.kanban-card-title').text());
+            });
+
+            $(document).on('dragend', '.kanban-card', function(e){
+                $(this).removeClass('dragging');
+                $('.kanban-column-body').removeClass('drag-over');
+            });
+
+            $(document).on('dragover', '.kanban-column-body', function(e){
+                if(e.preventDefault){
+                    e.preventDefault();
+                }
+                e.originalEvent.dataTransfer.dropEffect = 'move';
+                $(this).addClass('drag-over');
+                return false;
+            });
+
+            $(document).on('dragenter', '.kanban-column-body', function(e){
+                $(this).addClass('drag-over');
+            });
+
+            $(document).on('dragleave', '.kanban-column-body', function(e){
+                $(this).removeClass('drag-over');
+            });
+
+            $(document).on('drop', '.kanban-column-body', function(e){
+                if(e.stopPropagation){
+                    e.stopPropagation();
+                }
+                $(this).removeClass('drag-over');
+
+                if(draggedElement){
+                    var newStatusId = $(this).data('status-id');
+                    var oldStatusId = $(draggedElement).data('status-id');
+                    var leadId = $(draggedElement).data('lead-id');
+                    var cardTitle = $(draggedElement).find('.kanban-card-title').text();
+
+                    if(newStatusId !== oldStatusId){
+                        $(this).append(draggedElement);
+                        $(draggedElement).data('status-id', newStatusId);
+
+                        updateColumnCounts();
+
+                        var newStatus = statusesData.find(function(s){ return s['СтатусID'] === newStatusId; });
+                        log('Карточка "' + cardTitle + '" перемещена в статус "' + (newStatus ? newStatus['Статус'] : newStatusId) + '"', 'success');
+
+                        updateTaskStatus(leadId, newStatusId);
+                    }
+                }
+
+                return false;
+            });
+        }
+
+        function updateColumnCounts(){
+            $('.kanban-column').each(function(){
+                var count = $(this).find('.kanban-card').length;
+                $(this).find('.kanban-column-count').text(count);
+            });
+        }
+
+        function updateTaskStatus(leadId, newStatusId){
+            var timestamp = Math.floor(Date.now() / 1000);
+            log('Отправка API запроса: LeadID=' + leadId + ', StatusID=' + newStatusId + ', Timestamp=' + timestamp);
+
+            // Simulate API call (в реальной системе был бы XMLHttpRequest)
+            log('API запрос (симуляция): /_m_set/' + leadId + '?JSON с параметрами t2795=' + newStatusId + '&t3807=' + timestamp + '&_xsrf=' + xsrf, 'success');
+
+            // Update local data
+            var task = kanbanData.find(function(t){ return t['ЛидID'] === leadId; });
+            if(task){
+                task['СтатусID'] = newStatusId;
+                var newStatus = statusesData.find(function(s){ return s['СтатусID'] === newStatusId; });
+                if(newStatus){
+                    task['Статус'] = newStatus['Статус'];
+                }
+            }
+        }
+
+        $(document).ready(function(){
+            log('Страница загружена', 'success');
+            renderKanban();
+        });
+    </script>
+</body>
+</html>
