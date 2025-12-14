@@ -20,28 +20,8 @@
         gap: 16px;
         overflow-x: scroll; /* Always show horizontal scrollbar */
         padding: 20px;
-        scrollbar-width: auto; /* For Firefox: ensure scrollbar is always visible */
-    }
-
-    /* Webkit browsers (Chrome, Safari, Edge): ensure scrollbar is always visible */
-    .kanban-board::-webkit-scrollbar {
-        -webkit-appearance: none;
-        height: 12px;
-    }
-
-    .kanban-board::-webkit-scrollbar-track {
-        background-color: var(--background);
-        border-radius: 8px;
-    }
-
-    .kanban-board::-webkit-scrollbar-thumb {
-        background-color: var(--border-color);
-        border-radius: 8px;
-        border: 2px solid var(--background);
-    }
-
-    .kanban-board::-webkit-scrollbar-thumb:hover {
-        background-color: var(--text-secondary);
+        height: calc(100vh - 40px);
+        align-items: flex-start;
     }
 
     .kanban-column {
@@ -52,6 +32,7 @@
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
+        height: 100%;
     }
 
     .kanban-column-header {
@@ -63,6 +44,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-shrink: 0;
     }
 
     .kanban-column-count {
@@ -74,8 +56,9 @@
 
     .kanban-column-body {
         padding: 12px;
-        min-height: 200px;
+        overflow-y: auto;
         flex: 1;
+        min-height: 0;
     }
 
     .kanban-card {
