@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест иконок контактов в Kanban</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #3b82f6;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background);
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        .test-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .kanban-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: move;
+            transition: all 0.2s ease;
+        }
+
+        .kanban-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .kanban-card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .kanban-card-field {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .kanban-card-field-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .kanban-card-amount {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 8px;
+        }
+
+        .kanban-card-contacts {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .kanban-card-contact-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .kanban-card-contact-icon.active {
+            background-color: #3b82f6;
+            color: white;
+            cursor: pointer;
+        }
+
+        .kanban-card-contact-icon.active:hover {
+            background-color: #2563eb;
+            transform: scale(1.1);
+        }
+
+        .kanban-card-contact-icon.inactive {
+            background-color: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .test-info {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .test-info h2 {
+            margin-top: 0;
+            color: #0369a1;
+        }
+
+        .test-info ul {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест иконок контактов в Kanban карточках</h1>
+
+    <div class="test-info">
+        <h2>Тестовые сценарии:</h2>
+        <ul>
+            <li><strong>Интеграм</strong> - оба контакта доступны (голубые иконки)</li>
+            <li><strong>Ромашка</strong> - только телефон доступен (серая иконка email)</li>
+            <li><strong>Эллипс</strong> - только email доступен (серая иконка телефона)</li>
+            <li><strong>Вектор</strong> - оба контакта недоступны (обе иконки серые)</li>
+            <li><strong>Вундер-ваффер гмбх</strong> - оба контакта доступны (голубые иконки)</li>
+            <li><strong>Лабеан</strong> - оба контакта доступны (голубые иконки)</li>
+        </ul>
+    </div>
+
+    <div id="test-cards" class="test-cards-container"></div>
+
+    <script>
+        // Test data with various combinations of contact info
+        var testTasks = [
+            {
+                "Лид": "Интеграм",
+                "Контактное лицо": "Алексей",
+                "Примечание": "50 лицензий",
+                "Дата": "2025-12-13",
+                "Сумма": "1 410 000",
+                "Телефон": "+7 (495) 123-45-67",
+                "Email": "alexey@integram.example.com",
+                "ЛидID": "3001",
+                "СтатусID": "3689"
+            },
+            {
+                "Лид": "Ромашка",
+                "Контактное лицо": "Алексей",
+                "Примечание": "10 лицензий",
+                "Дата": "2025-12-11",
+                "Сумма": "141 000",
+                "Телефон": "+7 (495) 234-56-78",
+                "Email": "",
+                "ЛидID": "3002",
+                "СтатусID": "2849"
+            },
+            {
+                "Лид": "Эллипс",
+                "Контактное лицо": "Алексей",
+                "Примечание": "5 лицензий",
+                "Дата": "2025-12-10",
+                "Сумма": "70 500",
+                "Телефон": "",
+                "Email": "contact@ellips.example.com",
+                "ЛидID": "3003",
+                "СтатусID": "2843"
+            },
+            {
+                "Лид": "Вектор",
+                "Контактное лицо": "Виктор",
+                "Примечание": "",
+                "Дата": "2025-12-09",
+                "Сумма": "",
+                "Телефон": "",
+                "Email": "",
+                "ЛидID": "3004",
+                "СтатусID": "2806"
+            },
+            {
+                "Лид": "Вундер-ваффер гмбх",
+                "Контактное лицо": "Виктор",
+                "Примечание": "",
+                "Дата": "2025-12-08",
+                "Сумма": "600 000",
+                "Телефон": "+49 30 12345678",
+                "Email": "info@wunderwaffe.de",
+                "ЛидID": "3005",
+                "СтатусID": "3697"
+            },
+            {
+                "Лид": "Лабеан",
+                "Контактное лицо": "Рим",
+                "Примечание": "50 лицензий",
+                "Дата": "2025-12-08",
+                "Сумма": "1 410 000",
+                "Телефон": "+7 (812) 345-67-89",
+                "Email": "rim@labean.example.ru",
+                "ЛидID": "3006",
+                "СтатусID": "3699"
+            }
+        ];
+
+        function renderCard(task){
+            var html = '<div class="kanban-card" data-lead-id="' + task['ЛидID'] + '" data-status-id="' + task['СтатусID'] + '">';
+            html += '<div class="kanban-card-title">' + (task['Лид'] || '') + '</div>';
+
+            if(task['Контактное лицо']){
+                html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> ' + task['Контактное лицо'] + '</div>';
+            }
+
+            if(task['Примечание']){
+                html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Примечание:</span> ' + task['Примечание'] + '</div>';
+            }
+
+            if(task['Дата']){
+                html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Дата:</span> ' + task['Дата'] + '</div>';
+            }
+
+            if(task['Сумма']){
+                html += '<div class="kanban-card-amount">' + task['Сумма'] + ' ₽</div>';
+            }
+
+            // Add contact icons at bottom right
+            html += '<div class="kanban-card-contacts">';
+
+            // Email icon
+            var hasEmail = task['Email'] && task['Email'].trim() !== '';
+            if(hasEmail){
+                html += '<a href="mailto:' + task['Email'] + '" class="kanban-card-contact-icon active" title="' + task['Email'] + '">📧</a>';
+            } else {
+                html += '<span class="kanban-card-contact-icon inactive" title="Email недоступен">📧</span>';
+            }
+
+            // Phone icon
+            var hasPhone = task['Телефон'] && task['Телефон'].trim() !== '';
+            if(hasPhone){
+                html += '<a href="tel:' + task['Телефон'] + '" class="kanban-card-contact-icon active" title="' + task['Телефон'] + '">📞</a>';
+            } else {
+                html += '<span class="kanban-card-contact-icon inactive" title="Телефон недоступен">📞</span>';
+            }
+
+            html += '</div>';
+
+            html += '</div>';
+            return html;
+        }
+
+        // Render all test cards
+        $(document).ready(function(){
+            var html = '';
+            testTasks.forEach(function(task){
+                html += renderCard(task);
+            });
+            $('#test-cards').html(html);
+        });
+    </script>
+</body>
+</html>

@@ -112,6 +112,45 @@
         margin-top: 8px;
     }
 
+    .kanban-card-contacts {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 12px;
+        padding-top: 8px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .kanban-card-contact-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        font-size: 16px;
+    }
+
+    .kanban-card-contact-icon.active {
+        background-color: #3b82f6;
+        color: white;
+        cursor: pointer;
+    }
+
+    .kanban-card-contact-icon.active:hover {
+        background-color: #2563eb;
+        transform: scale(1.1);
+    }
+
+    .kanban-card-contact-icon.inactive {
+        background-color: #e2e8f0;
+        color: #94a3b8;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
     .loading {
         text-align: center;
         padding: 40px;
@@ -241,6 +280,27 @@ function renderCard(task){
     if(task['Сумма']){
         html += '<div class="kanban-card-amount">' + task['Сумма'] + ' ₽</div>';
     }
+
+    // Add contact icons at bottom right
+    html += '<div class="kanban-card-contacts">';
+
+    // Email icon
+    var hasEmail = task['Email'] && task['Email'].trim() !== '';
+    if(hasEmail){
+        html += '<a href="mailto:' + task['Email'] + '" class="kanban-card-contact-icon active" title="' + task['Email'] + '">📧</a>';
+    } else {
+        html += '<span class="kanban-card-contact-icon inactive" title="Email недоступен">📧</span>';
+    }
+
+    // Phone icon
+    var hasPhone = task['Телефон'] && task['Телефон'].trim() !== '';
+    if(hasPhone){
+        html += '<a href="tel:' + task['Телефон'] + '" class="kanban-card-contact-icon active" title="' + task['Телефон'] + '">📞</a>';
+    } else {
+        html += '<span class="kanban-card-contact-icon inactive" title="Телефон недоступен">📞</span>';
+    }
+
+    html += '</div>';
 
     html += '</div>';
     return html;
