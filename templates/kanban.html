@@ -118,14 +118,14 @@
         margin: 20px;
     }
 </style>
-
+<div id="kanban"></div>
 <script>
 // Kanban functionality
 var kanbanData = [];
 var statusesData = [];
 
 function loadKanbanData(){
-    $('.content').html('<div class="loading">Загрузка данных канбана...</div>');
+    $('#kanban').html('<div class="loading">Загрузка данных канбана...</div>');
 
     // Load tasks
     var xhr1 = new XMLHttpRequest();
@@ -175,7 +175,7 @@ function checkDataLoaded(){
 }
 
 function showError(message){
-    $('.content').html('<div class="error">' + message + '</div>');
+    $('#kanban').html('<div class="error">' + message + '</div>');
 }
 
 function renderKanban(){
@@ -208,7 +208,7 @@ function renderKanban(){
     });
 
     html += '</div>';
-    $('.content').html(html);
+    $('#kanban').html(html);
 
     // Initialize drag and drop
     initDragAndDrop();
