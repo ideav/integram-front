@@ -345,8 +345,21 @@ function renderKanban(){
         var statusId = status['СтатусID'];
 
         // Filter tasks for this status
+        // Use flexible matching to handle cases where СтатусID might contain the status name instead of ID
         var tasks = kanbanData.filter(function(task){
-            return task['СтатусID'] === statusId;
+            // Try matching by СтатусID (numeric ID or string ID)
+            if(task['СтатусID'] === statusId){
+                return true;
+            }
+            // Fallback: if task's СтатусID contains the status name, match by name
+            if(task['СтатусID'] === statusName){
+                return true;
+            }
+            // Also try matching task's Статус with status's Статус as a final fallback
+            if(task['Статус'] && task['Статус'] === statusName){
+                return true;
+            }
+            return false;
         });
 
         // Calculate total sum for this status
