@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Status Matching for Partners Mode</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .pass { color: green; font-weight: bold; }
+        .fail { color: red; font-weight: bold; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Status Matching Test for Partners Mode</h1>
+
+    <div class="test-section">
+        <h2>Issue Sample Data</h2>
+        <pre id="issue-data"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        // Sample data from the issue
+        var taskData = {
+            "Лид": "Интеграм",
+            "Статус": "Заявка принята",
+            "Сумма": "27900",
+            "Дата": "",
+            "ЛидID": "3910",
+            "СтатусID": "Заявка принята",  // STRING, not ID!
+            "Ответственный": "slider",
+            "Задачи": "0"
+        };
+
+        // Hypothetical status data (we need to verify this)
+        var statusData1 = {
+            "Статус": "Заявка принята",
+            "СтатусID": "Заявка принята"  // If status also has string
+        };
+
+        var statusData2 = {
+            "Статус": "Заявка принята",
+            "СтатусID": "12345"  // If status has numeric ID
+        };
+
+        document.getElementById('issue-data').textContent = JSON.stringify(taskData, null, 2);
+
+        var results = [];
+
+        // Test 1: Current code logic (strict equality)
+        var test1Result = taskData['СтатусID'] === statusData1['СтатусID'];
+        results.push('<p><strong>Test 1:</strong> Strict equality with matching string СтатусID</p>');
+        results.push('<p>taskData["СтатусID"] === statusData1["СтатусID"]</p>');
+        results.push('<p>"' + taskData['СтатусID'] + '" === "' + statusData1['СтатусID'] + '"</p>');
+        results.push('<p class="' + (test1Result ? 'pass' : 'fail') + '">Result: ' + test1Result + '</p>');
+
+        // Test 2: Current code logic with numeric ID (expected to fail)
+        var test2Result = taskData['СтатусID'] === statusData2['СтатусID'];
+        results.push('<p><strong>Test 2:</strong> Strict equality with numeric СтатусID</p>');
+        results.push('<p>taskData["СтатусID"] === statusData2["СтатусID"]</p>');
+        results.push('<p>"' + taskData['СтатусID'] + '" === "' + statusData2['СтатусID'] + '"</p>');
+        results.push('<p class="' + (test2Result ? 'pass' : 'fail') + '">Result: ' + test2Result + '</p>');
+
+        // Test 3: Alternative - match by status name
+        var test3Result = taskData['Статус'] === statusData2['Статус'];
+        results.push('<p><strong>Test 3:</strong> Match by Статус name instead</p>');
+        results.push('<p>taskData["Статус"] === statusData2["Статус"]</p>');
+        results.push('<p>"' + taskData['Статус'] + '" === "' + statusData2['Статус'] + '"</p>');
+        results.push('<p class="' + (test3Result ? 'pass' : 'fail') + '">Result: ' + test3Result + '</p>');
+
+        // Test 4: Flexible matching (either by ID or name)
+        function flexibleMatch(task, status) {
+            // Try matching by СтатусID first
+            if (task['СтатусID'] === status['СтатусID']) {
+                return true;
+            }
+            // Fallback to matching by Статус name
+            if (task['Статус'] && status['Статус'] && task['Статус'] === status['Статус']) {
+                return true;
+            }
+            // Also try matching if task's СтатусID equals status's Статус (for when СтатусID contains name)
+            if (task['СтатусID'] === status['Статус']) {
+                return true;
+            }
+            return false;
+        }
+
+        var test4aResult = flexibleMatch(taskData, statusData1);
+        var test4bResult = flexibleMatch(taskData, statusData2);
+
+        results.push('<p><strong>Test 4a:</strong> Flexible matching with statusData1</p>');
+        results.push('<p class="' + (test4aResult ? 'pass' : 'fail') + '">Result: ' + test4aResult + '</p>');
+
+        results.push('<p><strong>Test 4b:</strong> Flexible matching with statusData2</p>');
+        results.push('<p class="' + (test4bResult ? 'pass' : 'fail') + '">Result: ' + test4bResult + '</p>');
+
+        document.getElementById('test-results').innerHTML = results.join('');
+
+        // Summary
+        console.log('=== Status Matching Tests ===');
+        console.log('Task data СтатусID type:', typeof taskData['СтатусID']);
+        console.log('Task data СтатусID value:', taskData['СтатусID']);
+        console.log('Hypothesis: In partners mode, СтатусID contains the status NAME instead of ID');
+        console.log('Solution: Use flexible matching that handles both ID and name-based matching');
+    </script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Kanban Fix - Partners Mode</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .pass { color: green; font-weight: bold; }
+        .fail { color: red; font-weight: bold; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .result-card {
+            background: #e8f4f8;
+            border-left: 4px solid #2563eb;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kanban Fix Test - Partners Mode</h1>
+
+    <div class="test-section">
+        <h2>Scenario: Partners Mode Data</h2>
+        <p>Issue #46: СтатусID contains status name instead of numeric ID</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Sample Data</h2>
+        <h3>Tasks Data (from issue)</h3>
+        <pre id="tasks-data"></pre>
+        <h3>Statuses Data (hypothetical)</h3>
+        <pre id="statuses-data"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        // Sample tasks data from the issue
+        var kanbanData = [
+            {
+                "Лид": "Интеграм",
+                "Статус": "Заявка принята",
+                "Сумма": "27900",
+                "Дата": "",
+                "ЛидID": "3910",
+                "СтатусID": "Заявка принята",  // STRING name, not ID!
+                "Ответственный": "slider",
+                "Задачи": "0"
+            },
+            {
+                "Лид": "Клиент 2",
+                "Статус": "В работе",
+                "Сумма": "15000",
+                "Дата": "2024-12-01",
+                "ЛидID": "3911",
+                "СтатусID": "В работе",
+                "Ответственный": "admin",
+                "Задачи": "2"
+            },
+            {
+                "Лид": "Клиент 3",
+                "Статус": "Заявка принята",
+                "Сумма": "50000",
+                "Дата": "2024-12-05",
+                "ЛидID": "3912",
+                "СтатусID": "Заявка принята",
+                "Ответственный": "manager",
+                "Задачи": "1"
+            }
+        ];
+
+        // Hypothetical statuses data (could have numeric IDs)
+        var statusesData = [
+            {
+                "Статус": "Заявка принята",
+                "СтатусID": "1001"  // Numeric ID
+            },
+            {
+                "Статус": "В работе",
+                "СтатусID": "1002"  // Numeric ID
+            },
+            {
+                "Статус": "Завершено",
+                "СтатусID": "1003"  // Numeric ID
+            }
+        ];
+
+        document.getElementById('tasks-data').textContent = JSON.stringify(kanbanData, null, 2);
+        document.getElementById('statuses-data').textContent = JSON.stringify(statusesData, null, 2);
+
+        var results = [];
+
+        // OLD CODE (broken)
+        results.push('<h3>OLD CODE (Broken)</h3>');
+        statusesData.forEach(function(status){
+            var statusName = status['Статус'];
+            var statusId = status['СтатусID'];
+
+            var tasks = kanbanData.filter(function(task){
+                return task['СтатусID'] === statusId;  // Strict equality - FAILS!
+            });
+
+            results.push('<div class="result-card">');
+            results.push('<p><strong>Status:</strong> ' + statusName + ' (ID: ' + statusId + ')</p>');
+            results.push('<p class="' + (tasks.length > 0 ? 'pass' : 'fail') + '">Tasks found: ' + tasks.length + '</p>');
+            if(tasks.length > 0){
+                tasks.forEach(function(t){
+                    results.push('<p style="margin-left: 20px;">- ' + t['Лид'] + '</p>');
+                });
+            }
+            results.push('</div>');
+        });
+
+        // NEW CODE (fixed)
+        results.push('<h3>NEW CODE (Fixed with Flexible Matching)</h3>');
+        statusesData.forEach(function(status){
+            var statusName = status['Статус'];
+            var statusId = status['СтатусID'];
+
+            var tasks = kanbanData.filter(function(task){
+                // Try matching by СтатусID (numeric ID or string ID)
+                if(task['СтатусID'] === statusId){
+                    return true;
+                }
+                // Fallback: if task's СтатусID contains the status name, match by name
+                if(task['СтатусID'] === statusName){
+                    return true;
+                }
+                // Also try matching task's Статус with status's Статус as a final fallback
+                if(task['Статус'] && task['Статус'] === statusName){
+                    return true;
+                }
+                return false;
+            });
+
+            results.push('<div class="result-card">');
+            results.push('<p><strong>Status:</strong> ' + statusName + ' (ID: ' + statusId + ')</p>');
+            results.push('<p class="' + (tasks.length > 0 ? 'pass' : 'fail') + '">Tasks found: ' + tasks.length + '</p>');
+            if(tasks.length > 0){
+                tasks.forEach(function(t){
+                    results.push('<p style="margin-left: 20px;">- ' + t['Лид'] + ' (Сумма: ' + t['Сумма'] + ' ₽)</p>');
+                });
+            }
+            results.push('</div>');
+        });
+
+        document.getElementById('test-results').innerHTML = results.join('');
+
+        // Console summary
+        console.log('=== Kanban Fix Test Results ===');
+        console.log('Old code would find 0 tasks (strict equality fails)');
+        console.log('New code finds tasks correctly using flexible matching');
+    </script>
+</body>
+</html>
