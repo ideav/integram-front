@@ -609,7 +609,15 @@ function updateTaskStatus(leadId, newStatusId){
     xhr.onerror = function(){
         console.error('Network error updating status');
     };
-    xhr.send('t2795=' + newStatusId + '&t3807=' + timestamp + '&_xsrf=' + xsrf);
+
+    // Use different POST parameters based on whether 'partners' parameter is present
+    var postData;
+    if(hasPartnersParam){
+        postData = 't2884=' + newStatusId + '&t3943=' + timestamp + '&_xsrf=' + xsrf;
+    } else {
+        postData = 't2795=' + newStatusId + '&t3807=' + timestamp + '&_xsrf=' + xsrf;
+    }
+    xhr.send(postData);
 }
 
 // Copy contact to clipboard

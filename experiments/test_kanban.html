@@ -259,6 +259,10 @@
         var db = 'slider';
         var xsrf = 'test-xsrf-token';
 
+        // Parse URL parameters to check for 'partners' parameter
+        var urlParams = new URLSearchParams(window.location.search);
+        var hasPartnersParam = urlParams.has('partners');
+
         // Local test data
         var kanbanData = [
             {
@@ -487,8 +491,16 @@
             var timestamp = Math.floor(Date.now() / 1000);
             log('Отправка API запроса: LeadID=' + leadId + ', StatusID=' + newStatusId + ', Timestamp=' + timestamp);
 
+            // Use different POST parameters based on whether 'partners' parameter is present
+            var postParams;
+            if(hasPartnersParam){
+                postParams = 't2884=' + newStatusId + '&t3943=' + timestamp + '&_xsrf=' + xsrf;
+            } else {
+                postParams = 't2795=' + newStatusId + '&t3807=' + timestamp + '&_xsrf=' + xsrf;
+            }
+
             // Simulate API call (в реальной системе был бы XMLHttpRequest)
-            log('API запрос (симуляция): /_m_set/' + leadId + '?JSON с параметрами t2795=' + newStatusId + '&t3807=' + timestamp + '&_xsrf=' + xsrf, 'success');
+            log('API запрос (симуляция): /_m_set/' + leadId + '?JSON с параметрами ' + postParams, 'success');
 
             // Update local data
             var task = kanbanData.find(function(t){ return t['ЛидID'] === leadId; });
