@@ -154,6 +154,13 @@
         pointer-events: none;
     }
 
+    .kanban-card-date {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-align: right;
+        margin-top: 4px;
+    }
+
     .loading {
         text-align: center;
         padding: 40px;
@@ -276,10 +283,6 @@ function renderCard(task){
         html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Примечание:</span> ' + task['Примечание'] + '</div>';
     }
 
-    if(task['Дата']){
-        html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Дата:</span> ' + task['Дата'] + '</div>';
-    }
-
     if(task['Сумма']){
         html += '<div class="kanban-card-amount">' + task['Сумма'] + ' ₽</div>';
     }
@@ -301,6 +304,11 @@ function renderCard(task){
         html += '<a href="mailto:' + task['Email'] + '" class="kanban-card-contact-icon active" title="' + task['Email'] + '">📧</a>';
     } else {
         html += '<span class="kanban-card-contact-icon inactive" title="Email недоступен">📧</span>';
+    }
+
+    // Date below contact icons (without "Дата:" label)
+    if(task['Дата']){
+        html += '<div class="kanban-card-date">' + task['Дата'] + '</div>';
     }
 
     html += '</div>';
