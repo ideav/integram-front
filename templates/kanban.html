@@ -498,7 +498,7 @@ function renderCard(task){
     var tasksUrl = '';
     if(task['ЛидID']){
         var frParam = hasPartnersParam ? 'FR_3879' : 'FR_3881';
-        tasksUrl = '/' + db + '/object/3596?' + frParam + '=' + task['ЛидID'];
+        tasksUrl = '/' + db + '/object/3596?' + frParam + '=@' + task['ЛидID'];
     }
 
     if(tasksCount > 0 && tasksUrl){
