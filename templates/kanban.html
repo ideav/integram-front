@@ -20,6 +20,8 @@
         gap: 16px;
         overflow-x: auto;
         padding: 20px;
+        height: calc(100vh - 40px);
+        align-items: flex-start;
     }
 
     .kanban-column {
@@ -28,6 +30,9 @@
         border-radius: 12px;
         box-shadow: var(--shadow-md);
         flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
     }
 
     .kanban-column-header {
@@ -39,6 +44,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-shrink: 0;
     }
 
     .kanban-column-count {
@@ -50,7 +56,9 @@
 
     .kanban-column-body {
         padding: 12px;
-        min-height: 200px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
     }
 
     .kanban-card {
