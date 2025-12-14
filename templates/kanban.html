@@ -353,7 +353,7 @@ function renderCard(task){
     // Phone icon (on top)
     var hasPhone = task['Телефон'] && task['Телефон'].trim() !== '';
     if(hasPhone){
-        html += '<a href="tel:' + task['Телефон'] + '" class="kanban-card-contact-icon active" title="' + task['Телефон'] + '">📞</a>';
+        html += '<span class="kanban-card-contact-icon active" title="' + task['Телефон'] + '" onclick="copyContact(\'' + task['Телефон'] + '\', \'phone\', event)">📞</span>';
     } else {
         html += '<span class="kanban-card-contact-icon inactive" title="Телефон недоступен">📞</span>';
     }
@@ -361,7 +361,7 @@ function renderCard(task){
     // Email icon (below)
     var hasEmail = task['Email'] && task['Email'].trim() !== '';
     if(hasEmail){
-        html += '<a href="mailto:' + task['Email'] + '" class="kanban-card-contact-icon active" title="' + task['Email'] + '">📧</a>';
+        html += '<span class="kanban-card-contact-icon active" title="' + task['Email'] + '" onclick="copyContact(\'' + task['Email'] + '\', \'email\', event)">📧</span>';
     } else {
         html += '<span class="kanban-card-contact-icon inactive" title="Email недоступен">📧</span>';
     }
@@ -472,6 +472,40 @@ function updateTaskStatus(leadId, newStatusId){
         console.error('Network error updating status');
     };
     xhr.send('t2795=' + newStatusId + '&t3807=' + timestamp + '&_xsrf=' + xsrf);
+}
+
+// Copy contact to clipboard
+function copyContact(value, type, event){
+    // Prevent card drag from starting
+    if(event){
+        event.stopPropagation();
+    }
+
+    // Copy to clipboard using the legacy method for compatibility
+    var $temp = $("<input>");
+    $("body").append($temp);
+    $temp.val(value).select();
+    document.execCommand("copy");
+    $temp.remove();
+
+    // Show visual feedback
+    var icon = event.target;
+    var originalText = icon.textContent;
+    var originalTitle = icon.title;
+
+    // Change icon to checkmark temporarily
+    icon.textContent = '✓';
+    icon.title = 'Скопировано в буфер';
+    icon.style.backgroundColor = 'rgba(34, 197, 94, 0.25)'; // Green background
+    icon.style.color = 'rgba(34, 197, 94, 0.9)'; // Green text
+
+    // Restore original icon after 1.5 seconds
+    setTimeout(function(){
+        icon.textContent = originalText;
+        icon.title = originalTitle;
+        icon.style.backgroundColor = '';
+        icon.style.color = '';
+    }, 1500);
 }
 
 // Load data on page load
