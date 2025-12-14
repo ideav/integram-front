@@ -460,7 +460,7 @@ function renderCard(task){
 
     // Create title as a hyperlink to edit_obj page
     var editUrl = '/' + db + '/edit_obj/' + task['ЛидID'];
-    html += '<a href="' + editUrl + '" class="kanban-card-title" onclick="event.stopPropagation();">' + (task['Лид'] || '') + '</a>';
+    html += '<a target="eo" href="' + editUrl + '" class="kanban-card-title" onclick="event.stopPropagation();">' + (task['Лид'] || '') + '</a>';
 
     if(task['Контактное лицо']){
         html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> ' + task['Контактное лицо'] + '</div>';
