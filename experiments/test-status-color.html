@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Status Color Field</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status-header {
+            padding: 12px 16px;
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .status-info {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        code {
+            background: #e0e0e0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Status Color Field Implementation</h1>
+
+    <div class="test-section">
+        <h2>Test 1: Status with color field (hex format)</h2>
+        <div class="status-info">
+            <strong>Status Data:</strong> <code>{"Статус": "Лид", "СтатусID": "3689", "color": "#a85555"}</code>
+        </div>
+        <div id="test1-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Status without color field (fallback to CSS)</h2>
+        <div class="status-info">
+            <strong>Status Data:</strong> <code>{"Статус": "Первичный контакт", "СтатусID": "3691"}</code>
+        </div>
+        <div id="test2-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Status with RGB color</h2>
+        <div class="status-info">
+            <strong>Status Data:</strong> <code>{"Статус": "Квалификация", "СтатусID": "3693", "color": "rgb(184, 134, 85)"}</code>
+        </div>
+        <div id="test3-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Multiple statuses with different color formats</h2>
+        <div id="test4-result"></div>
+    </div>
+
+    <script>
+        // Copy the lightenColor function from kanban.html
+        function lightenColor(color, percent) {
+            // Handle hex colors (e.g., #a85555)
+            if (color.startsWith('#')) {
+                var num = parseInt(color.slice(1), 16);
+                var r = (num >> 16) + Math.round(2.55 * percent);
+                var g = ((num >> 8) & 0x00FF) + Math.round(2.55 * percent);
+                var b = (num & 0x0000FF) + Math.round(2.55 * percent);
+
+                // Ensure values stay within 0-255 range
+                r = Math.min(255, r);
+                g = Math.min(255, g);
+                b = Math.min(255, b);
+
+                return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+            }
+
+            // Handle rgb/rgba colors
+            if (color.startsWith('rgb')) {
+                var matches = color.match(/\d+/g);
+                if (matches && matches.length >= 3) {
+                    var r = Math.min(255, parseInt(matches[0]) + Math.round(2.55 * percent));
+                    var g = Math.min(255, parseInt(matches[1]) + Math.round(2.55 * percent));
+                    var b = Math.min(255, parseInt(matches[2]) + Math.round(2.55 * percent));
+
+                    if (matches.length === 4) {
+                        return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + matches[3] + ')';
+                    }
+                    return 'rgb(' + r + ', ' + g + ', ' + b + ')';
+                }
+            }
+
+            // If color format is not recognized, return original color
+            return color;
+        }
+
+        // Test 1: Status with color field
+        var status1 = {"Статус": "Лид", "СтатусID": "3689", "color": "#a85555"};
+        var baseColor1 = status1.color;
+        var lightColor1 = lightenColor(baseColor1, 10);
+        var html1 = '<div class="status-header" style="background: linear-gradient(135deg, ' + baseColor1 + ' 0%, ' + lightColor1 + ' 100%);">';
+        html1 += status1['Статус'];
+        html1 += '</div>';
+        html1 += '<div class="status-info">Base color: <code>' + baseColor1 + '</code>, Light color: <code>' + lightColor1 + '</code></div>';
+        document.getElementById('test1-result').innerHTML = html1;
+
+        // Test 2: Status without color field (should not apply inline style)
+        var status2 = {"Статус": "Первичный контакт", "СтатусID": "3691"};
+        var headerStyle2 = '';
+        if(status2['color']){
+            var baseColor2 = status2['color'];
+            var lightColor2 = lightenColor(baseColor2, 10);
+            headerStyle2 = ' style="background: linear-gradient(135deg, ' + baseColor2 + ' 0%, ' + lightColor2 + ' 100%);"';
+        }
+        var html2 = '<div class="status-header" data-status-id="' + status2['СтатусID'] + '"' + headerStyle2 + ' style="background: #ccc;">';
+        html2 += status2['Статус'];
+        html2 += '</div>';
+        html2 += '<div class="status-info">No color field - using fallback gray color for demo (in real kanban, CSS variables would be used)</div>';
+        document.getElementById('test2-result').innerHTML = html2;
+
+        // Test 3: Status with RGB color
+        var status3 = {"Статус": "Квалификация", "СтатусID": "3693", "color": "rgb(184, 134, 85)"};
+        var baseColor3 = status3.color;
+        var lightColor3 = lightenColor(baseColor3, 10);
+        var html3 = '<div class="status-header" style="background: linear-gradient(135deg, ' + baseColor3 + ' 0%, ' + lightColor3 + ' 100%);">';
+        html3 += status3['Статус'];
+        html3 += '</div>';
+        html3 += '<div class="status-info">Base color: <code>' + baseColor3 + '</code>, Light color: <code>' + lightColor3 + '</code></div>';
+        document.getElementById('test3-result').innerHTML = html3;
+
+        // Test 4: Multiple statuses
+        var statuses = [
+            {"Статус": "Отправлено КП", "СтатусID": "3695", "color": "#b8a555"},
+            {"Статус": "Презентация / демо", "СтатусID": "2849", "color": "#a5b855"},
+            {"Статус": "Согласование", "СтатусID": "2843"},
+            {"Статус": "Оплата", "СтатусID": "3699", "color": "#5586b8"}
+        ];
+
+        var html4 = '';
+        statuses.forEach(function(status) {
+            var headerStyle = '';
+            if(status['color']){
+                var baseColor = status['color'];
+                var lightColor = lightenColor(baseColor, 10);
+                headerStyle = ' style="background: linear-gradient(135deg, ' + baseColor + ' 0%, ' + lightColor + ' 100%);"';
+            } else {
+                headerStyle = ' style="background: #ccc;"';
+            }
+            html4 += '<div class="status-header"' + headerStyle + '>';
+            html4 += status['Статус'] + (status['color'] ? ' (has color)' : ' (no color - fallback)');
+            html4 += '</div>';
+        });
+        document.getElementById('test4-result').innerHTML = html4;
+    </script>
+</body>
+</html>

@@ -278,6 +278,42 @@ var statusesData = [];
 var urlParams = new URLSearchParams(window.location.search);
 var hasPartnersParam = urlParams.has('partners');
 
+// Helper function to lighten a color by a percentage
+function lightenColor(color, percent) {
+    // Handle hex colors (e.g., #a85555)
+    if (color.startsWith('#')) {
+        var num = parseInt(color.slice(1), 16);
+        var r = (num >> 16) + Math.round(2.55 * percent);
+        var g = ((num >> 8) & 0x00FF) + Math.round(2.55 * percent);
+        var b = (num & 0x0000FF) + Math.round(2.55 * percent);
+
+        // Ensure values stay within 0-255 range
+        r = Math.min(255, r);
+        g = Math.min(255, g);
+        b = Math.min(255, b);
+
+        return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+    }
+
+    // Handle rgb/rgba colors
+    if (color.startsWith('rgb')) {
+        var matches = color.match(/\d+/g);
+        if (matches && matches.length >= 3) {
+            var r = Math.min(255, parseInt(matches[0]) + Math.round(2.55 * percent));
+            var g = Math.min(255, parseInt(matches[1]) + Math.round(2.55 * percent));
+            var b = Math.min(255, parseInt(matches[2]) + Math.round(2.55 * percent));
+
+            if (matches.length === 4) {
+                return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + matches[3] + ')';
+            }
+            return 'rgb(' + r + ', ' + g + ', ' + b + ')';
+        }
+    }
+
+    // If color format is not recognized, return original color
+    return color;
+}
+
 function loadKanbanData(){
     $('#kanban').html('<div class="loading">Загрузка данных канбана...</div>');
 
@@ -379,7 +415,18 @@ function renderKanban(){
         var formattedSum = totalSum.toLocaleString('ru-RU');
 
         html += '<div class="kanban-column">';
-        html += '<div class="kanban-column-header" data-status-id="' + statusId + '">';
+
+        // Check if status has a color field and use it for the header
+        var headerStyle = '';
+        if(status['color']){
+            // Use the color from API if available
+            // Generate a lighter version of the color for the gradient by increasing brightness
+            var baseColor = status['color'];
+            var lightColor = lightenColor(baseColor, 8); // Lighten by 8% to match existing gradient style
+            headerStyle = ' style="background: linear-gradient(135deg, ' + baseColor + ' 0%, ' + lightColor + ' 100%);"';
+        }
+
+        html += '<div class="kanban-column-header" data-status-id="' + statusId + '"' + headerStyle + '>';
         html += '<span>' + statusName + ' (' + formattedSum + ' ₽)</span>';
         html += '<span class="kanban-column-count">' + tasks.length + '</span>';
         html += '</div>';
