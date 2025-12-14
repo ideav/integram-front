@@ -153,6 +153,13 @@
         font-size: 1rem;
         margin-bottom: 8px;
         color: var(--text-primary);
+        text-decoration: none;
+        display: block;
+    }
+
+    .kanban-card-title:hover {
+        color: var(--primary-color);
+        text-decoration: underline;
     }
 
     .kanban-card-field {
@@ -450,7 +457,10 @@ function renderKanban(){
 
 function renderCard(task){
     var html = '<div class="kanban-card" draggable="true" data-lead-id="' + task['ЛидID'] + '" data-status-id="' + task['СтатусID'] + '">';
-    html += '<div class="kanban-card-title">' + (task['Лид'] || '') + '</div>';
+
+    // Create title as a hyperlink to edit_obj page
+    var editUrl = '/' + db + '/edit_obj/' + task['ЛидID'];
+    html += '<a href="' + editUrl + '" class="kanban-card-title" onclick="event.stopPropagation();">' + (task['Лид'] || '') + '</a>';
 
     if(task['Контактное лицо']){
         html += '<div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> ' + task['Контактное лицо'] + '</div>';

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Kanban Card Title Link</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #3b82f6;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background);
+            padding: 20px;
+        }
+
+        .kanban-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            padding-right: 40px;
+            margin-bottom: 12px;
+            cursor: move;
+            transition: all 0.2s ease;
+            position: relative;
+            max-width: 300px;
+        }
+
+        .kanban-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .kanban-card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: block;
+        }
+
+        .kanban-card-title:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        .kanban-card-field {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .kanban-card-field-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .kanban-card-amount {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 8px;
+        }
+
+        .test-info {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .test-info h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .test-info ul {
+            line-height: 1.8;
+        }
+
+        .clicked-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e0f2fe;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-info">
+        <h2>Тест: Гиперссылка в заголовке карточки канбана</h2>
+        <p><strong>Проверяемая функциональность:</strong></p>
+        <ul>
+            <li>Заголовок карточки (.kanban-card-title) является гиперссылкой</li>
+            <li>Ссылка ведет на /{DB}/edit_obj/{ЛидID}</li>
+            <li>При наведении курсора заголовок подчеркивается и меняет цвет</li>
+            <li>Клик на заголовок переходит на страницу редактирования (в этом тесте предотвращен)</li>
+            <li>event.stopPropagation() предотвращает конфликт с drag-and-drop</li>
+        </ul>
+        <p><strong>Инструкции:</strong></p>
+        <ol>
+            <li>Наведите курсор на заголовок карточки "ООО Ромашка"</li>
+            <li>Проверьте, что текст подчеркивается и меняет цвет на синий</li>
+            <li>Кликните на заголовок - должно появиться сообщение о клике</li>
+            <li>Проверьте в консоли браузера правильный URL</li>
+        </ol>
+    </div>
+
+    <div class="kanban-card" draggable="true" data-lead-id="12345" data-status-id="3689">
+        <a href="/test_db/edit_obj/12345" class="kanban-card-title" onclick="event.preventDefault(); event.stopPropagation(); testLinkClick(this); return false;">ООО Ромашка</a>
+        <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Иван Иванов</div>
+        <div class="kanban-card-field"><span class="kanban-card-field-label">Примечание:</span> Заинтересованы в продукте</div>
+        <div class="kanban-card-amount">500 000 ₽</div>
+    </div>
+
+    <div class="clicked-info" id="clickedInfo"></div>
+
+    <script>
+        function testLinkClick(element) {
+            var url = element.getAttribute('href');
+            var leadId = element.closest('.kanban-card').getAttribute('data-lead-id');
+            var clickedInfo = document.getElementById('clickedInfo');
+
+            clickedInfo.innerHTML = '<strong>✓ Клик обработан успешно!</strong><br>' +
+                                    'URL: ' + url + '<br>' +
+                                    'Lead ID: ' + leadId;
+            clickedInfo.style.display = 'block';
+
+            console.log('Link clicked!');
+            console.log('URL:', url);
+            console.log('Lead ID:', leadId);
+            console.log('Expected format: /{DB}/edit_obj/{ЛидID}');
+            console.log('Actual format matches expected: ' + (url === '/test_db/edit_obj/' + leadId));
+        }
+
+        // Log initial state
+        console.log('Test loaded successfully');
+        console.log('Card title element:', document.querySelector('.kanban-card-title'));
+        console.log('Is link?', document.querySelector('.kanban-card-title').tagName === 'A');
+    </script>
+</body>
+</html>
