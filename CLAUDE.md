@@ -17,3 +17,15 @@ Original repository (upstream): ideav/integram-front
 Proceed.
 
 Run timestamp: 2025-12-14T13:04:17.459Z
+
+---
+
+Issue to solve: https://github.com/ideav/integram-front/issues/36
+Your prepared branch: issue-36-066a0261d366
+Your prepared working directory: /tmp/gh-issue-solver-1765729456769
+Your forked repository: unidel2035/ideav-integram-front
+Original repository (upstream): ideav/integram-front
+
+Proceed.
+
+Run timestamp: 2025-12-14T16:24:31.129Z
