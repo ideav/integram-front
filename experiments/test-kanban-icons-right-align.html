@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест выравнивания иконок контактов по правому краю</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #3b82f6;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background);
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .test-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .kanban-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            padding-right: 40px; /* Make space for vertical icons on the right */
+            cursor: move;
+            transition: all 0.2s ease;
+            position: relative; /* Enable absolute positioning for icons */
+            min-height: 120px;
+        }
+
+        .kanban-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .kanban-card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .kanban-card-field {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .kanban-card-field-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .kanban-card-amount {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 8px;
+        }
+
+        .kanban-card-contacts {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            display: flex;
+            flex-direction: column; /* Stack icons vertically */
+            align-items: flex-end; /* Align icons to the right */
+            gap: 4px; /* Smaller gap for vertical stacking */
+        }
+
+        .kanban-card-contact-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .kanban-card-contact-icon.active {
+            background-color: rgba(59, 130, 246, 0.25); /* Pale/faded blue */
+            color: rgba(59, 130, 246, 0.7); /* Pale/faded blue text */
+            cursor: pointer;
+        }
+
+        .kanban-card-contact-icon.active:hover {
+            background-color: rgba(37, 99, 235, 0.35); /* Slightly darker on hover */
+            color: rgba(37, 99, 235, 0.9);
+            transform: scale(1.1);
+        }
+
+        .kanban-card-contact-icon.inactive {
+            background-color: rgba(226, 232, 240, 0.5); /* More transparent gray */
+            color: rgba(148, 163, 184, 0.5); /* More transparent gray text */
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .kanban-card-date {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: right;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест выравнивания иконок контактов по правому краю (Issue #34)</h1>
+    <div class="description">
+        <strong>Требование:</strong><br>
+        ✅ Иконки контактов прибиты к правому краю карточки<br>
+        ✅ Используется <code>align-items: flex-end</code> для корректного выравнивания внутри flex-контейнера<br>
+        ✅ Иконки и дата остаются выровнены по правому краю
+    </div>
+
+    <div class="test-cards-container">
+        <!-- Card 1: With date, both contacts -->
+        <div class="kanban-card">
+            <div class="kanban-card-title">Лид с полными данными</div>
+            <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Иван Иванов</div>
+            <div class="kanban-card-field"><span class="kanban-card-field-label">Примечание:</span> Важный клиент</div>
+            <div class="kanban-card-amount">150 000 ₽</div>
+            <div class="kanban-card-contacts">
+                <a href="tel:+79001234567" class="kanban-card-contact-icon active" title="+79001234567">📞</a>
+                <a href="mailto:ivan@example.com" class="kanban-card-contact-icon active" title="ivan@example.com">📧</a>
+                <div class="kanban-card-date">2024-12-15</div>
+            </div>
+        </div>
+
+        <!-- Card 2: With date, only phone -->
+        <div class="kanban-card">
+            <div class="kanban-card-title">Лид с телефоном</div>
+            <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Петр Петров</div>
+            <div class="kanban-card-amount">75 000 ₽</div>
+            <div class="kanban-card-contacts">
+                <a href="tel:+79009876543" class="kanban-card-contact-icon active" title="+79009876543">📞</a>
+                <span class="kanban-card-contact-icon inactive" title="Email недоступен">📧</span>
+                <div class="kanban-card-date">2024-12-20</div>
+            </div>
+        </div>
+
+        <!-- Card 3: With date, only email -->
+        <div class="kanban-card">
+            <div class="kanban-card-title">Лид с email</div>
+            <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Мария Сидорова</div>
+            <div class="kanban-card-amount">200 000 ₽</div>
+            <div class="kanban-card-contacts">
+                <span class="kanban-card-contact-icon inactive" title="Телефон недоступен">📞</span>
+                <a href="mailto:maria@example.com" class="kanban-card-contact-icon active" title="maria@example.com">📧</a>
+                <div class="kanban-card-date">2025-01-10</div>
+            </div>
+        </div>
+
+        <!-- Card 4: With date, no contacts -->
+        <div class="kanban-card">
+            <div class="kanban-card-title">Лид без контактов</div>
+            <div class="kanban-card-field"><span class="kanban-card-field-label">Примечание:</span> Получить контакты</div>
+            <div class="kanban-card-amount">50 000 ₽</div>
+            <div class="kanban-card-contacts">
+                <span class="kanban-card-contact-icon inactive" title="Телефон недоступен">📞</span>
+                <span class="kanban-card-contact-icon inactive" title="Email недоступен">📧</span>
+                <div class="kanban-card-date">2024-12-18</div>
+            </div>
+        </div>
+
+        <!-- Card 5: Without date, with contacts -->
+        <div class="kanban-card">
+            <div class="kanban-card-title">Лид без даты</div>
+            <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Анна Козлова</div>
+            <div class="kanban-card-amount">100 000 ₽</div>
+            <div class="kanban-card-contacts">
+                <a href="tel:+79005551234" class="kanban-card-contact-icon active" title="+79005551234">📞</a>
+                <a href="mailto:anna@example.com" class="kanban-card-contact-icon active" title="anna@example.com">📧</a>
+            </div>
+        </div>
+
+        <!-- Card 6: Long content with date -->
+        <div class="kanban-card">
+            <div class="kanban-card-title">Лид с длинным описанием</div>
+            <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Дмитрий Александрович Смирнов</div>
+            <div class="kanban-card-field"><span class="kanban-card-field-label">Примечание:</span> Очень важный клиент с большим потенциалом. Требуется особое внимание и индивидуальный подход к работе.</div>
+            <div class="kanban-card-amount">500 000 ₽</div>
+            <div class="kanban-card-contacts">
+                <a href="tel:+79001112233" class="kanban-card-contact-icon active" title="+79001112233">📞</a>
+                <a href="mailto:dmitry@example.com" class="kanban-card-contact-icon active" title="dmitry@example.com">📧</a>
+                <div class="kanban-card-date">2024-12-25</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
