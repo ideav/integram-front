@@ -66,9 +66,11 @@
         border: 1px solid var(--border-color);
         border-radius: 8px;
         padding: 12px;
+        padding-right: 40px; /* Make space for vertical icons on the right */
         margin-bottom: 12px;
         cursor: move;
         transition: all 0.2s ease;
+        position: relative; /* Enable absolute positioning for icons */
     }
 
     .kanban-card:hover {
@@ -113,40 +115,41 @@
     }
 
     .kanban-card-contacts {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
         display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-        margin-top: 12px;
-        padding-top: 8px;
-        border-top: 1px solid var(--border-color);
+        flex-direction: column; /* Stack icons vertically */
+        gap: 4px; /* Smaller gap for vertical stacking */
     }
 
     .kanban-card-contact-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s ease;
         text-decoration: none;
-        font-size: 16px;
+        font-size: 14px;
     }
 
     .kanban-card-contact-icon.active {
-        background-color: #3b82f6;
-        color: white;
+        background-color: rgba(59, 130, 246, 0.25); /* Pale/faded blue */
+        color: rgba(59, 130, 246, 0.7); /* Pale/faded blue text */
         cursor: pointer;
     }
 
     .kanban-card-contact-icon.active:hover {
-        background-color: #2563eb;
+        background-color: rgba(37, 99, 235, 0.35); /* Slightly darker on hover */
+        color: rgba(37, 99, 235, 0.9);
         transform: scale(1.1);
     }
 
     .kanban-card-contact-icon.inactive {
-        background-color: #e2e8f0;
-        color: #94a3b8;
+        background-color: rgba(226, 232, 240, 0.5); /* More transparent gray */
+        color: rgba(148, 163, 184, 0.5); /* More transparent gray text */
         cursor: not-allowed;
         pointer-events: none;
     }
@@ -281,23 +284,23 @@ function renderCard(task){
         html += '<div class="kanban-card-amount">' + task['Сумма'] + ' ₽</div>';
     }
 
-    // Add contact icons at bottom right
+    // Add contact icons at bottom right (vertically stacked)
     html += '<div class="kanban-card-contacts">';
 
-    // Email icon
-    var hasEmail = task['Email'] && task['Email'].trim() !== '';
-    if(hasEmail){
-        html += '<a href="mailto:' + task['Email'] + '" class="kanban-card-contact-icon active" title="' + task['Email'] + '">📧</a>';
-    } else {
-        html += '<span class="kanban-card-contact-icon inactive" title="Email недоступен">📧</span>';
-    }
-
-    // Phone icon
+    // Phone icon (on top)
     var hasPhone = task['Телефон'] && task['Телефон'].trim() !== '';
     if(hasPhone){
         html += '<a href="tel:' + task['Телефон'] + '" class="kanban-card-contact-icon active" title="' + task['Телефон'] + '">📞</a>';
     } else {
         html += '<span class="kanban-card-contact-icon inactive" title="Телефон недоступен">📞</span>';
+    }
+
+    // Email icon (below)
+    var hasEmail = task['Email'] && task['Email'].trim() !== '';
+    if(hasEmail){
+        html += '<a href="mailto:' + task['Email'] + '" class="kanban-card-contact-icon active" title="' + task['Email'] + '">📧</a>';
+    } else {
+        html += '<span class="kanban-card-contact-icon inactive" title="Email недоступен">📧</span>';
     }
 
     html += '</div>';
