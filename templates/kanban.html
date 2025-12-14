@@ -13,29 +13,29 @@
         --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
-        /* Status header colors - muted gradient from red to purple */
-        --status-color-3689: #c97a7a;  /* Muted red - Лид */
-        --status-color-3689-light: #d49a9a;
-        --status-color-3691: #d4957a;  /* Muted red-orange - Первичный контакт */
-        --status-color-3691-light: #dfa991;
-        --status-color-3693: #d4a97a;  /* Muted orange - Квалификация */
-        --status-color-3693-light: #dfba91;
-        --status-color-3695: #d4c77a;  /* Muted yellow-orange - Отправлено КП */
-        --status-color-3695-light: #dfd091;
-        --status-color-2849: #c9d47a;  /* Muted yellow - Презентация / демо */
-        --status-color-2849-light: #d4df91;
-        --status-color-2843: #a9d47a;  /* Muted yellow-green - Согласование */
-        --status-color-2843-light: #badf91;
-        --status-color-2806: #7ad493;  /* Muted green - Триал / апробация */
-        --status-color-2806-light: #91dfa9;
-        --status-color-3697: #7ad4c7;  /* Muted teal - Закрытие сделки */
-        --status-color-3697-light: #91dfd0;
-        --status-color-3699: #7aa9d4;  /* Muted blue - Оплата */
-        --status-color-3699-light: #91badf;
-        --status-color-3701: #957ad4;  /* Muted blue-purple - Повторная оплата */
-        --status-color-3701-light: #a991df;
-        --status-color-2824: #c77ad4;  /* Muted purple - Отказ / срыв сделки */
-        --status-color-2824-light: #d091df;
+        /* Status header colors - darker gradient from red to purple for better white text readability */
+        --status-color-3689: #a85555;  /* Darker red - Лид */
+        --status-color-3689-light: #b86b6b;
+        --status-color-3691: #b87355;  /* Darker red-orange - Первичный контакт */
+        --status-color-3691-light: #c68565;
+        --status-color-3693: #b88655;  /* Darker orange - Квалификация */
+        --status-color-3693-light: #c69865;
+        --status-color-3695: #b8a555;  /* Darker yellow-orange - Отправлено КП */
+        --status-color-3695-light: #c6b365;
+        --status-color-2849: #a5b855;  /* Darker yellow - Презентация / демо */
+        --status-color-2849-light: #b3c665;
+        --status-color-2843: #86b855;  /* Darker yellow-green - Согласование */
+        --status-color-2843-light: #98c665;
+        --status-color-2806: #55b875;  /* Darker green - Триал / апробация */
+        --status-color-2806-light: #65c686;
+        --status-color-3697: #55b8a5;  /* Darker teal - Закрытие сделки */
+        --status-color-3697-light: #65c6b3;
+        --status-color-3699: #5586b8;  /* Darker blue - Оплата */
+        --status-color-3699-light: #6598c6;
+        --status-color-3701: #7355b8;  /* Darker blue-purple - Повторная оплата */
+        --status-color-3701-light: #8565c6;
+        --status-color-2824: #a555b8;  /* Darker purple - Отказ / срыв сделки */
+        --status-color-2824-light: #b365c6;
     }
 
     /* Kanban specific styles */
@@ -308,9 +308,25 @@ function renderKanban(){
             return task['СтатусID'] === statusId;
         });
 
+        // Calculate total sum for this status
+        var totalSum = 0;
+        tasks.forEach(function(task){
+            if(task['Сумма']){
+                // Remove spaces and convert to number
+                var sumStr = task['Сумма'].replace(/\s/g, '');
+                var sum = parseFloat(sumStr);
+                if(!isNaN(sum)){
+                    totalSum += sum;
+                }
+            }
+        });
+
+        // Format sum with spaces as thousand separators
+        var formattedSum = totalSum.toLocaleString('ru-RU');
+
         html += '<div class="kanban-column">';
         html += '<div class="kanban-column-header" data-status-id="' + statusId + '">';
-        html += '<span>' + statusName + '</span>';
+        html += '<span>' + statusName + ' (' + formattedSum + ' ₽)</span>';
         html += '<span class="kanban-column-count">' + tasks.length + '</span>';
         html += '</div>';
         html += '<div class="kanban-column-body" data-status-id="' + statusId + '">';
