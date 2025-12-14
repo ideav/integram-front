@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Kanban Column Body Height</title>
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #3b82f6;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--background);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            padding: 20px;
+            margin: 0;
+            background-color: var(--surface);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .test-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Kanban specific styles */
+        .kanban-board {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .kanban-column {
+            min-width: 300px;
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kanban-column-header {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+            font-weight: 600;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .kanban-column-count {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+        }
+
+        .kanban-column-body {
+            padding: 12px;
+            min-height: 200px;
+            flex: 1;
+            background-color: rgba(255, 255, 200, 0.3); /* Yellow tint to visualize the body area */
+            overflow-y: auto;
+        }
+
+        .kanban-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            cursor: move;
+            transition: all 0.2s ease;
+        }
+
+        .kanban-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .kanban-card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .kanban-card-field {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .kanban-card-field-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .test-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--surface);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            font-size: 0.875rem;
+            z-index: 1000;
+        }
+
+        .test-info h3 {
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+        }
+
+        .test-info p {
+            margin: 4px 0;
+            color: var(--text-secondary);
+        }
+
+        .test-info strong {
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <h1>Test: Kanban Column Body Height</h1>
+    <div class="test-container">
+        <div class="kanban-board">
+            <!-- Column with few cards -->
+            <div class="kanban-column">
+                <div class="kanban-column-header">
+                    <span>Новые (Few Cards)</span>
+                    <span class="kanban-column-count">2</span>
+                </div>
+                <div class="kanban-column-body" id="body1">
+                    <div class="kanban-card">
+                        <div class="kanban-card-title">Карточка 1</div>
+                        <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Иванов И.И.</div>
+                    </div>
+                    <div class="kanban-card">
+                        <div class="kanban-card-title">Карточка 2</div>
+                        <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Петров П.П.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column with many cards -->
+            <div class="kanban-column">
+                <div class="kanban-column-header">
+                    <span>В работе (Many Cards)</span>
+                    <span class="kanban-column-count">8</span>
+                </div>
+                <div class="kanban-column-body" id="body2">
+                    <div class="kanban-card">
+                        <div class="kanban-card-title">Карточка 1</div>
+                        <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Сидоров С.С.</div>
+                    </div>
+                    <div class="kanban-card">
+                        <div class="kanban-card-title">Карточка 2</div>
+                        <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Федоров Ф.Ф.</div>
+                    </div>
+                    <div class="kanban-card">
+                        <div class="kanban-card-title">Карточка 3</div>
+                        <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Морозов М.М.</div>
+                    </div>
+                    <div class="kanban-card">
+                        <div class="kanban-card-title">Карточка 4</div>
+                        <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Волков В.В.</div>
+                    </div>
+                    <div class="kanban-card">
+                        <div class="kanban-card-title">Карточка 5</div>
+                        <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Соколов С.С.</div>
+                    </div>
+                    <div class="kanban-card">
+                        <div class="kanban-card-title">Карточка 6</div>
+                        <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Лебедев Л.Л.</div>
+                    </div>
+                    <div class="kanban-card">
+                        <div class="kanban-card-title">Карточка 7</div>
+                        <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Козлов К.К.</div>
+                    </div>
+                    <div class="kanban-card">
+                        <div class="kanban-card-title">Карточка 8</div>
+                        <div class="kanban-card-field"><span class="kanban-card-field-label">Контакт:</span> Новиков Н.Н.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty column -->
+            <div class="kanban-column">
+                <div class="kanban-column-header">
+                    <span>Завершено (Empty)</span>
+                    <span class="kanban-column-count">0</span>
+                </div>
+                <div class="kanban-column-body" id="body3">
+                    <!-- No cards -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-info">
+        <h3>Test Results</h3>
+        <p><strong>Expected:</strong> All column bodies should have equal height (yellow background fills column)</p>
+        <p><strong>Fix Applied:</strong> Yes</p>
+        <p>- <code>display: flex</code> on .kanban-column</p>
+        <p>- <code>flex-direction: column</code> on .kanban-column</p>
+        <p>- <code>flex: 1</code> on .kanban-column-body</p>
+    </div>
+
+    <script>
+        // Display computed heights for verification
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const body1 = document.getElementById('body1');
+                const body2 = document.getElementById('body2');
+                const body3 = document.getElementById('body3');
+
+                console.log('Column Body 1 height:', body1.offsetHeight + 'px');
+                console.log('Column Body 2 height:', body2.offsetHeight + 'px');
+                console.log('Column Body 3 height:', body3.offsetHeight + 'px');
+
+                const column1 = body1.parentElement;
+                const column2 = body2.parentElement;
+                const column3 = body3.parentElement;
+
+                console.log('Column 1 height:', column1.offsetHeight + 'px');
+                console.log('Column 2 height:', column2.offsetHeight + 'px');
+                console.log('Column 3 height:', column3.offsetHeight + 'px');
+            }, 100);
+        });
+    </script>
+</body>
+</html>
