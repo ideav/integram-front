@@ -234,6 +234,7 @@
         justify-content: center;
         margin-top: 8px;
         transition: all 0.2s ease;
+        text-decoration: none; /* For anchor tags */
     }
 
     .kanban-card-tasks-button.has-tasks {
@@ -273,12 +274,20 @@
 var kanbanData = [];
 var statusesData = [];
 
+// Parse URL parameters to check for 'partners' parameter
+var urlParams = new URLSearchParams(window.location.search);
+var hasPartnersParam = urlParams.has('partners');
+
 function loadKanbanData(){
     $('#kanban').html('<div class="loading">Загрузка данных канбана...</div>');
 
+    // Determine which endpoints to use based on 'partners' parameter
+    var tasksReportId = hasPartnersParam ? '3864' : '3769';
+    var statusesReportId = hasPartnersParam ? '3917' : '3796';
+
     // Load tasks
     var xhr1 = new XMLHttpRequest();
-    xhr1.open('GET', 'https://' + window.location.hostname + '/' + db + '/report/3769?JSON_KV', true);
+    xhr1.open('GET', 'https://' + window.location.hostname + '/' + db + '/report/' + tasksReportId + '?JSON_KV', true);
     xhr1.onload = function(){
         if(xhr1.status === 200){
             try{
@@ -298,7 +307,7 @@ function loadKanbanData(){
 
     // Load statuses
     var xhr2 = new XMLHttpRequest();
-    xhr2.open('GET', 'https://' + window.location.hostname + '/' + db + '/report/3796?JSON_KV', true);
+    xhr2.open('GET', 'https://' + window.location.hostname + '/' + db + '/report/' + statusesReportId + '?JSON_KV', true);
     xhr2.onload = function(){
         if(xhr2.status === 200){
             try{
@@ -424,9 +433,23 @@ function renderCard(task){
     // Add tasks button at the bottom of the card
     var tasksCount = task['Задачи'] ? parseInt(task['Задачи']) : 0;
     var buttonClass = tasksCount > 0 ? 'has-tasks' : 'no-tasks';
-    html += '<button class="kanban-card-tasks-button ' + buttonClass + '" onclick="event.stopPropagation();">';
-    html += 'Задачи (' + tasksCount + ')';
-    html += '</button>';
+
+    // Determine the correct URL based on partners parameter
+    var tasksUrl = '';
+    if(task['ЛидID']){
+        var frParam = hasPartnersParam ? 'FR_3879' : 'FR_3881';
+        tasksUrl = '/' + db + '/object/3596?' + frParam + '=' + task['ЛидID'];
+    }
+
+    if(tasksCount > 0 && tasksUrl){
+        html += '<a href="' + tasksUrl + '" target="tasks" class="kanban-card-tasks-button ' + buttonClass + '" onclick="event.stopPropagation();">';
+        html += 'Задачи (' + tasksCount + ')';
+        html += '</a>';
+    } else {
+        html += '<button class="kanban-card-tasks-button ' + buttonClass + '" onclick="event.stopPropagation();">';
+        html += 'Задачи (' + tasksCount + ')';
+        html += '</button>';
+    }
 
     html += '</div>';
     return html;
