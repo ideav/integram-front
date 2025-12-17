@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Material Design Badges and Cards Test</title>
+    <style>
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        h1, h2 {
+            color: #1e293b;
+        }
+
+        /* Material Design Badges - Current Style */
+        .current-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #6c757d;
+            color: #212529;
+            border-radius: 50rem;
+            font-size: 0.875rem;
+            margin: 4px;
+        }
+
+        /* Material Design Badges - New Style */
+        .md-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            background-color: #e8eaf6;
+            color: #3f51b5;
+            border-radius: 16px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            margin: 4px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: none;
+            border: 1px solid transparent;
+        }
+
+        .md-badge:hover {
+            background-color: #c5cae9;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        .md-badge.md-badge-primary {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .md-badge.md-badge-success {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .md-badge.md-badge-warning {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+
+        .md-badge.md-badge-error {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+
+        .md-badge.md-badge-info {
+            background-color: #e1f5fe;
+            color: #0288d1;
+        }
+
+        /* Material Design Cards - Current Style */
+        .current-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px;
+            width: 300px;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        /* Material Design Cards - New Style */
+        .md-card {
+            background: #ffffff;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 12px;
+            width: 300px;
+            display: inline-block;
+            vertical-align: top;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 1px -1px rgba(0,0,0,0.2),
+                        0 1px 1px 0 rgba(0,0,0,0.14),
+                        0 1px 3px 0 rgba(0,0,0,0.12);
+        }
+
+        .md-card:hover {
+            box-shadow: 0 3px 5px -1px rgba(0,0,0,0.2),
+                        0 6px 10px 0 rgba(0,0,0,0.14),
+                        0 1px 18px 0 rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+
+        .md-card-elevated {
+            box-shadow: 0 4px 5px -2px rgba(0,0,0,0.2),
+                        0 7px 10px 1px rgba(0,0,0,0.14),
+                        0 2px 16px 1px rgba(0,0,0,0.12);
+        }
+
+        .md-card-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .md-card-subtitle {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .md-card-content {
+            font-size: 0.875rem;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .md-card-actions {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .md-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.0892857143em;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+            color: #1976d2;
+        }
+
+        .md-button:hover {
+            background: rgba(25, 118, 210, 0.04);
+        }
+
+        .md-button-contained {
+            background: #1976d2;
+            color: white;
+            box-shadow: 0 3px 1px -2px rgba(0,0,0,0.2),
+                        0 2px 2px 0 rgba(0,0,0,0.14),
+                        0 1px 5px 0 rgba(0,0,0,0.12);
+        }
+
+        .md-button-contained:hover {
+            background: #1565c0;
+            box-shadow: 0 2px 4px -1px rgba(0,0,0,0.2),
+                        0 4px 5px 0 rgba(0,0,0,0.14),
+                        0 1px 10px 0 rgba(0,0,0,0.12);
+        }
+
+        /* Kanban Column Header - Current vs Material Design */
+        .current-header {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+            font-weight: 600;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .md-header {
+            padding: 16px;
+            background: #1976d2;
+            color: white;
+            font-weight: 500;
+            font-size: 1rem;
+            letter-spacing: 0.0125em;
+            border-radius: 4px 4px 0 0;
+            box-shadow: 0 2px 4px -1px rgba(0,0,0,0.2),
+                        0 4px 5px 0 rgba(0,0,0,0.14),
+                        0 1px 10px 0 rgba(0,0,0,0.12);
+        }
+
+        .comparison {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .comparison-item {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .demo-container {
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 4px;
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Material Design Badges and Cards</h1>
+    <p>Comparison between current Bootstrap-based styles and Material Design styles</p>
+
+    <div class="section">
+        <h2>1. Badges Comparison</h2>
+        <div class="comparison">
+            <div class="comparison-item">
+                <h3>Current Style (Bootstrap)</h3>
+                <div class="demo-container">
+                    <span class="current-badge">Default Badge</span>
+                    <span class="current-badge" style="background-color: #6c757d; color: #212529;">Secondary</span>
+                    <span class="current-badge" style="background-color: #007bff; color: white;">Primary</span>
+                    <span class="current-badge" style="background-color: #28a745; color: white;">Success</span>
+                </div>
+            </div>
+
+            <div class="comparison-item">
+                <h3>Material Design Style</h3>
+                <div class="demo-container">
+                    <span class="md-badge">Default Badge</span>
+                    <span class="md-badge md-badge-primary">Primary</span>
+                    <span class="md-badge md-badge-success">Success</span>
+                    <span class="md-badge md-badge-warning">Warning</span>
+                    <span class="md-badge md-badge-error">Error</span>
+                    <span class="md-badge md-badge-info">Info</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. Cards Comparison</h2>
+        <div class="comparison">
+            <div class="comparison-item">
+                <h3>Current Style</h3>
+                <div class="demo-container">
+                    <div class="current-card">
+                        <div style="font-weight: 600; margin-bottom: 8px;">Card Title</div>
+                        <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 4px;">Subtitle or info</div>
+                        <div style="font-size: 0.875rem; color: #64748b;">Additional content here</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-item">
+                <h3>Material Design Style</h3>
+                <div class="demo-container">
+                    <div class="md-card">
+                        <div class="md-card-title">Card Title</div>
+                        <div class="md-card-subtitle">Subtitle or info</div>
+                        <div class="md-card-content">
+                            Material Design cards have distinctive elevation and hover effects.
+                        </div>
+                        <div class="md-card-actions">
+                            <button class="md-button">Action</button>
+                            <button class="md-button-contained md-button">Action</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>3. Kanban Column Headers</h2>
+        <div class="comparison">
+            <div class="comparison-item">
+                <h3>Current Style</h3>
+                <div class="demo-container">
+                    <div class="current-header">
+                        <span>Status Name (150 000 ₽)</span>
+                        <span style="background-color: rgba(255, 255, 255, 0.2); padding: 2px 8px; border-radius: 12px; font-size: 0.875rem; float: right;">5</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-item">
+                <h3>Material Design Style</h3>
+                <div class="demo-container">
+                    <div class="md-header">
+                        <span>Status Name (150 000 ₽)</span>
+                        <span style="background-color: rgba(255, 255, 255, 0.25); padding: 4px 12px; border-radius: 16px; font-size: 0.875rem; float: right;">5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>4. Kanban Cards with Material Design</h2>
+        <div class="demo-container">
+            <div class="md-card" style="width: 320px;">
+                <a href="#" class="md-card-title" style="text-decoration: none; color: #1976d2; display: block; margin-bottom: 12px;">Lead Name / Task Title</a>
+                <div class="md-card-content">
+                    <div style="margin-bottom: 8px;">
+                        <strong style="color: #1e293b;">Контакт:</strong> <span style="color: #64748b;">John Doe</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <strong style="color: #1e293b;">Примечание:</strong> <span style="color: #64748b;">Follow up next week</span>
+                    </div>
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #1976d2; margin-top: 12px;">
+                        150 000 ₽
+                    </div>
+                </div>
+                <div style="position: relative; margin-top: 12px;">
+                    <div style="position: absolute; right: 0; top: 0; display: flex; flex-direction: column; gap: 4px;">
+                        <span style="width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; background-color: rgba(25, 118, 210, 0.15); color: #1976d2; cursor: pointer;" title="Phone">📞</span>
+                        <span style="width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; background-color: rgba(25, 118, 210, 0.15); color: #1976d2; cursor: pointer;" title="Email">📧</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>5. Material Design Elevation Levels</h2>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="text-align: center;">
+                <p>Level 1 (Cards at rest)</p>
+                <div class="md-card" style="width: 120px; height: 80px;"></div>
+            </div>
+            <div style="text-align: center;">
+                <p>Level 2 (Hover state)</p>
+                <div class="md-card md-card-elevated" style="width: 120px; height: 80px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('Material Design test loaded');
+    </script>
+</body>
+</html>
