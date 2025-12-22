@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест - Анализ партнеров</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script>
+        // Mock global variables that would normally be set by main.html
+        var db = 'integram';
+    </script>
+</head>
+<body>
+    <div style="padding: 20px; background-color: #f8fafc;">
+        <h1 style="margin-bottom: 20px;">Тестирование страницы анализа партнеров</h1>
+        <div style="background-color: #fff; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <h3>Инструкции по тестированию:</h3>
+            <ol>
+                <li>Проверьте, что таблица загружается с данными партнеров</li>
+                <li>Выберите разные годы в фильтре (2023, 2024, 2025)</li>
+                <li>Введите название партнера в поле фильтра и нажмите "Применить"</li>
+                <li>Используйте фильтры в заголовках колонок для фильтрации по любому полю</li>
+                <li>Проверьте пагинацию (переключение между страницами)</li>
+                <li>Проверьте, что "Уровень по порогу" корректно рассчитывается на основе "Суммы оплат"</li>
+                <li>Проверьте, что уровни с несовпадением выделены желтым цветом</li>
+            </ol>
+        </div>
+
+        <div id="partners-template-container"></div>
+    </div>
+
+    <script>
+        // Load the partners.html template content
+        fetch('../templates/partners.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('partners-template-container').innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error loading template:', error);
+                document.getElementById('partners-template-container').innerHTML =
+                    '<div style="padding: 20px; background-color: #fee2e2; color: #991b1b; border-radius: 8px;">Ошибка загрузки шаблона partners.html</div>';
+            });
+    </script>
+</body>
+</html>
