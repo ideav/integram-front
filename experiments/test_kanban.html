@@ -373,7 +373,9 @@
 
                 html += '<div class="kanban-column">';
                 html += '<div class="kanban-column-header" data-status-id="' + statusId + '">';
-                html += '<span>' + statusName + '</span>';
+                // Truncate status name to 28 characters with '...' if longer
+                var displayStatusName = statusName.length > 28 ? statusName.substring(0, 28) + '...' : statusName;
+                html += '<span title="' + statusName + '">' + displayStatusName + '</span>';
                 html += '<span class="kanban-column-count">' + tasks.length + '</span>';
                 html += '</div>';
                 html += '<div class="kanban-column-body" data-status-id="' + statusId + '">';

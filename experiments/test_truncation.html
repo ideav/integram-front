@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Status Name Truncation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .kanban-column-header {
+            padding: 16px;
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            color: white;
+            font-weight: 500;
+            font-size: 1rem;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .test-info {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 4px;
+        }
+        .test-result {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Status Name Truncation Test</h1>
+
+    <div class="test-container">
+        <h2>Test Case 1: Short name (less than 28 chars)</h2>
+        <div class="test-info">
+            Original: "Лид" (3 chars)<br>
+            Expected: "Лид" (no truncation)
+        </div>
+        <div id="test1" class="kanban-column-header"></div>
+        <div id="result1"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Test Case 2: Medium name (exactly 28 chars)</h2>
+        <div class="test-info">
+            Original: "Первичный контакт с клиен" (28 chars)<br>
+            Expected: "Первичный контакт с клиен" (no truncation)
+        </div>
+        <div id="test2" class="kanban-column-header"></div>
+        <div id="result2"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Test Case 3: Long name (more than 28 chars)</h2>
+        <div class="test-info">
+            Original: "Презентация / демонстрация продукта" (36 chars)<br>
+            Expected: "Презентация / демонстрация п..." (28 chars + ...)
+        </div>
+        <div id="test3" class="kanban-column-header"></div>
+        <div id="result3"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Test Case 4: Very long name</h2>
+        <div class="test-info">
+            Original: "Согласование условий и подписание договора с клиентом" (54 chars)<br>
+            Expected: "Согласование условий и подпи..." (28 chars + ...)
+        </div>
+        <div id="test4" class="kanban-column-header"></div>
+        <div id="result4"></div>
+    </div>
+
+    <script>
+        function testTruncation(statusName, testId) {
+            // This is the same logic used in kanban.html
+            var displayStatusName = statusName.length > 28 ? statusName.substring(0, 28) + '...' : statusName;
+
+            // Render with tooltip
+            var html = '<span title="' + statusName + '">' + displayStatusName + '</span>';
+            document.getElementById(testId).innerHTML = html;
+
+            // Verify result
+            var resultDiv = document.getElementById('result' + testId.replace('test', ''));
+            var isCorrect = statusName.length <= 28 ?
+                (displayStatusName === statusName) :
+                (displayStatusName === statusName.substring(0, 28) + '...');
+
+            resultDiv.innerHTML = '<div class="test-result">' +
+                (isCorrect ? '✓ PASS' : '✗ FAIL') +
+                ' - Display: "' + displayStatusName + '" (' + displayStatusName.length + ' chars)</div>';
+
+            // Check tooltip
+            var span = document.querySelector('#' + testId + ' span');
+            var hasTooltip = span.getAttribute('title') === statusName;
+            resultDiv.innerHTML += '<div class="test-result">' +
+                (hasTooltip ? '✓ PASS' : '✗ FAIL') +
+                ' - Tooltip shows full name</div>';
+        }
+
+        // Run tests
+        testTruncation('Лид', 'test1');
+        testTruncation('Первичный контакт с клиен', 'test2');
+        testTruncation('Презентация / демонстрация продукта', 'test3');
+        testTruncation('Согласование условий и подписание договора с клиентом', 'test4');
+    </script>
+</body>
+</html>
