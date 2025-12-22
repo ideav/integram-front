@@ -394,7 +394,8 @@ function loadPartnersData(){
 
     var url = 'https://' + window.location.hostname + '/' + db + '/report/4339?JSON_KV&FR_Год=' + yearFilter;
     if(partnerFilter){
-        url += '&FR_Партнер=' + encodeURIComponent(partnerFilter);
+        // Wrap partner filter value with % for MySQL LIKE pattern matching
+        url += '&FR_Партнер=' + encodeURIComponent('%' + partnerFilter + '%');
     }
 
     xhr1.open('GET', url, true);
@@ -440,6 +441,9 @@ function checkDataLoaded(){
     if(partnersData.length > 0 && levelsData.length > 0){
         processData();
         renderTable();
+    } else if(partnersData.length === 0 && levelsData.length > 0){
+        // No data found after applying filters
+        document.getElementById('partnersTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">Данные не найдены</td></tr>';
     }
 }
 
@@ -686,6 +690,21 @@ document.getElementById('resetFilters').addEventListener('click', function(){
 
     currentPage = 1;
     loadPartnersData();
+});
+
+// Add Enter key handler for filter inputs in blue header
+document.getElementById('yearFilter').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+        currentPage = 1;
+        loadPartnersData();
+    }
+});
+
+document.getElementById('partnerFilter').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+        currentPage = 1;
+        loadPartnersData();
+    }
 });
 
 // Column filter inputs

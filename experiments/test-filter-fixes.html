@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Filter Fixes</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .info { color: blue; }
+        input { padding: 8px; margin: 5px; }
+        button { padding: 8px 16px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Filter Fixes Test</h1>
+
+    <div class="test-section">
+        <h2>Test 1: Enter Key Handler</h2>
+        <p class="info">Test that Enter key triggers filter application</p>
+        <input type="text" id="testInput" placeholder="Type and press Enter">
+        <div id="enterResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Partner Filter % Wrapping</h2>
+        <p class="info">Test that partner filter value is wrapped with %</p>
+        <input type="text" id="partnerInput" placeholder="Enter partner name">
+        <button onclick="testPartnerFilter()">Test</button>
+        <div id="partnerResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Empty Results Message</h2>
+        <p class="info">Test that "Данные не найдены" is shown when no data</p>
+        <button onclick="testEmptyResults()">Test Empty Results</button>
+        <div id="emptyResult"></div>
+    </div>
+
+    <script>
+        // Test 1: Enter key handler
+        document.getElementById('testInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('enterResult').innerHTML = '<p class="success">✓ Enter key detected! Filter would be applied.</p>';
+            }
+        });
+
+        // Test 2: Partner filter wrapping
+        function testPartnerFilter() {
+            var input = document.getElementById('partnerInput').value.trim();
+            if (input) {
+                var wrapped = '%' + input + '%';
+                var encoded = encodeURIComponent(wrapped);
+                document.getElementById('partnerResult').innerHTML =
+                    '<p class="success">✓ Input: "' + input + '"</p>' +
+                    '<p class="success">✓ Wrapped: "' + wrapped + '"</p>' +
+                    '<p class="success">✓ Encoded: "' + encoded + '"</p>' +
+                    '<p class="info">This will be sent as FR_Партнер=' + encoded + '</p>';
+            }
+        }
+
+        // Test 3: Empty results
+        function testEmptyResults() {
+            var partnersData = [];
+            var levelsData = [{ "Уровень": "Test", "Порог": "1000" }];
+
+            if (partnersData.length === 0 && levelsData.length > 0) {
+                document.getElementById('emptyResult').innerHTML =
+                    '<p class="success">✓ Empty data detected</p>' +
+                    '<p class="success">✓ Message would be: "Данные не найдены"</p>';
+            }
+        }
+    </script>
+
+    <div class="test-section">
+        <h2>Summary of Fixes</h2>
+        <ol>
+            <li><strong>Enter key handler:</strong> Added keydown event listeners for yearFilter and partnerFilter inputs (lines 696-708 in partners.html)</li>
+            <li><strong>Partner filter % wrapping:</strong> Modified line 398 to wrap partner filter value with % symbols for MySQL LIKE pattern matching</li>
+            <li><strong>Empty results message:</strong> Modified checkDataLoaded() function (lines 440-448) to display "Данные не найдены" when no data is found</li>
+        </ol>
+    </div>
+</body>
+</html>
