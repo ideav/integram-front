@@ -448,6 +448,13 @@ function processData(){
     filteredData = partnersData.slice();
 }
 
+function decodeHtmlEntities(text){
+    if(!text) return text;
+    var txt = document.createElement('textarea');
+    txt.innerHTML = text;
+    return txt.value;
+}
+
 function applyColumnFilters(){
     var filters = {};
     var filterInputs = document.querySelectorAll('.column-filter');
@@ -500,7 +507,7 @@ function renderTable(){
 
         // Партнер
         var td1 = document.createElement('td');
-        td1.textContent = partner['Партнер'] || '';
+        td1.textContent = decodeHtmlEntities(partner['Партнер']) || '';
         tr.appendChild(td1);
 
         // PID
