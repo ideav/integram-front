@@ -218,6 +218,23 @@ if('{_global_.role}'==='admin'||'{_global_.role}'==='boss')
     .pult-section:nth-child(3) .pult-card {
         animation-delay: 0.2s;
     }
+
+    /* Two-column grid layout for calls and tasks */
+    .pult-grid-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    @media (min-width: 1024px) {
+        .pult-grid-container {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .pult-grid-item {
+        min-width: 0; /* Prevents grid blowout */
+    }
 </style>
 
 <div class="pult-container">
@@ -229,7 +246,6 @@ if('{_global_.role}'==='admin'||'{_global_.role}'==='boss')
                 <thead>
                     <tr>
                         <th>Отчет</th>
-                        <th>Описание</th>
                     </tr>
                 </thead>
                 <tbody id="reports-body">
@@ -240,7 +256,6 @@ if('{_global_.role}'==='admin'||'{_global_.role}'==='boss')
                                 {Запрос}
                             </a>
                         </td>
-                        <td>{Описание}</td>
                     </tr>
                     <!-- End:Пользовательские -->
                 </tbody>
@@ -248,65 +263,68 @@ if('{_global_.role}'==='admin'||'{_global_.role}'==='boss')
         </div>
     </div>
 
-    <!-- Звонки -->
-    <div class="pult-section">
-        <h2 class="pult-section-title">Звонки</h2>
-        <div class="pult-card">
-            <table class="pult-table">
-                <thead>
-                    <tr>
-                        <th>Лид</th>
-                        <th>Звонок</th>
-                        <th>Статус звонка</th>
-                        <th>Тема</th>
-                        <th>Тип звонка</th>
-                    </tr>
-                </thead>
-                <tbody id="calls-body">
-                    <!-- Begin:Звонки -->
-                    <tr>
-                        <td>{Лид}</td>
-                        <td>{Звонок}</td>
-                        <td>
-                            <span class="pult-badge pult-badge-success" style="background-color: {bgcolor}; color: white;">
-                                {Статус звонка}
-                            </span>
-                        </td>
-                        <td>{Тема}</td>
-                        <td>{Тип звонка}</td>
-                    </tr>
-                    <!-- End:Звонки -->
-                </tbody>
-            </table>
+    <!-- Звонки и Мои задачи в две колонки -->
+    <div class="pult-grid-container">
+        <!-- Звонки -->
+        <div class="pult-section pult-grid-item">
+            <h2 class="pult-section-title">Звонки</h2>
+            <div class="pult-card">
+                <table class="pult-table">
+                    <thead>
+                        <tr>
+                            <th>Лид</th>
+                            <th>Звонок</th>
+                            <th>Статус звонка</th>
+                            <th>Тема</th>
+                            <th>Тип звонка</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calls-body">
+                        <!-- Begin:Звонки -->
+                        <tr>
+                            <td>{Лид}</td>
+                            <td>{Звонок}</td>
+                            <td>
+                                <span class="pult-badge pult-badge-success" style="background-color: {bgcolor}; color: white;">
+                                    {Статус звонка}
+                                </span>
+                            </td>
+                            <td>{Тема}</td>
+                            <td>{Тип звонка}</td>
+                        </tr>
+                        <!-- End:Звонки -->
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
 
-    <!-- Мои задачи -->
-    <div class="pult-section">
-        <h2 class="pult-section-title">Мои задачи</h2>
-        <div class="pult-card">
-            <table class="pult-table">
-                <thead>
-                    <tr>
-                        <th>Задачи</th>
-                        <th>Лид</th>
-                        <th>Статус задачи</th>
-                        <th>Тип задачи</th>
-                        <th>Срок</th>
-                    </tr>
-                </thead>
-                <tbody id="tasks-body">
-                    <!-- Begin:Мои задачи -->
-                    <tr>
-                        <td>{Задачи}</td>
-                        <td>{Лид}</td>
-                        <td>{Статус задачи}</td>
-                        <td>{Тип задачи}</td>
-                        <td>{Срок}</td>
-                    </tr>
-                    <!-- End:Мои задачи -->
-                </tbody>
-            </table>
+        <!-- Мои задачи -->
+        <div class="pult-section pult-grid-item">
+            <h2 class="pult-section-title">Мои задачи</h2>
+            <div class="pult-card">
+                <table class="pult-table">
+                    <thead>
+                        <tr>
+                            <th>Задачи</th>
+                            <th>Лид</th>
+                            <th>Статус задачи</th>
+                            <th>Тип задачи</th>
+                            <th>Срок</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasks-body">
+                        <!-- Begin:Мои задачи -->
+                        <tr>
+                            <td>{Задачи}</td>
+                            <td>{Лид}</td>
+                            <td>{Статус задачи}</td>
+                            <td>{Тип задачи}</td>
+                            <td>{Срок}</td>
+                        </tr>
+                        <!-- End:Мои задачи -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
