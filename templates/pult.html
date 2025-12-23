@@ -1,0 +1,47 @@
+<script>
+if('{_global_.role}'==='admin'||'{_global_.role}'==='boss')
+    document.location.href='/'+db+'/dash';
+</script>
+<div class="p-2">
+<style>
+.X{
+    font-weight: 700;
+}
+</style>
+<h3>Пользовательские отчеты</h3>
+<table class="table table-bordered w-auto">
+<tr style="background-color:#f9f9f9;">
+<th>Отчет</th><th>Описание</th>
+</tr>
+<!-- Begin:Пользовательские -->
+<tr>
+<td><a href="/{_global_.z}/{Формат отчета}/{ЗапросID}" class="{приоритет}">{Запрос}</a></td><td>{Описание}</td>
+</tr>
+<!-- End:Пользовательские -->
+</table>
+
+<h3>Звонки</h3>
+<table class="table table-bordered w-auto">
+<tr style="background-color:#f9f9f9;">
+<th>Лид</th><th>Звонок</th><th>Статус звонка</th><th>Тема</th><th>Тип звонка</th>
+</tr>
+<!-- Begin:Звонки -->
+<tr>
+<td>{Лид}</td><td>{Звонок}</td><td bgcolor="{bgcolor}">{Статус звонка}</td><td>{Тема}</td><td>{Тип звонка}</td>
+</tr>
+<!-- End:Звонки -->
+</table>
+<h3>Мои задачи</h3>
+<table class="table table-bordered w-auto">
+<tr style="background-color:#f9f9f9;">
+<th>Задачи</th><th>Лид</th><th>Статус задачи</th><th>Тип задачи</th><th>Срок</th>
+</tr>
+<!-- Begin:Мои задачи -->
+<tr>
+<td>{Задачи}</td><td>{Лид}</td><td>{Статус задачи}</td><td>{Тип задачи}</td><td>{Срок}</td>
+</tr>
+<!-- End:Мои задачи -->
+</table>
+
+
+</div>
