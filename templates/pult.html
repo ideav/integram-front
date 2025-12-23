@@ -80,7 +80,6 @@ if('{_global_.role}'==='admin'||'{_global_.role}'==='boss')
 
     .pult-table thead tr {
         background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-        color: white;
     }
 
     .pult-table th {
@@ -235,6 +234,84 @@ if('{_global_.role}'==='admin'||'{_global_.role}'==='boss')
     .pult-grid-item {
         min-width: 0; /* Prevents grid blowout */
     }
+
+    /* Report cards grid */
+    .pult-reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .pult-report-card {
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px 20px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .pult-report-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+        border-color: var(--primary-color);
+    }
+
+    .pult-report-card.X {
+        border-left: 4px solid var(--danger-color);
+    }
+
+    .pult-report-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .pult-report-card.X .pult-report-icon {
+        background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+    }
+
+    .pult-report-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .pult-report-title {
+        color: var(--text-primary);
+        font-weight: 500;
+        font-size: 0.938rem;
+        line-height: 1.4;
+        text-decoration: none;
+        display: block;
+        word-wrap: break-word;
+    }
+
+    .pult-report-card:hover .pult-report-title {
+        color: var(--primary-color);
+    }
+
+    .pult-report-card.X:hover .pult-report-title {
+        color: var(--danger-color);
+    }
+
+    @media (max-width: 768px) {
+        .pult-reports-grid {
+            grid-template-columns: 1fr;
+            padding: 8px;
+        }
+    }
 </style>
 
 <div class="pult-container">
@@ -242,24 +319,16 @@ if('{_global_.role}'==='admin'||'{_global_.role}'==='boss')
     <div class="pult-section">
         <h2 class="pult-section-title">Пользовательские отчеты</h2>
         <div class="pult-card">
-            <table class="pult-table">
-                <thead>
-                    <tr>
-                        <th>Отчет</th>
-                    </tr>
-                </thead>
-                <tbody id="reports-body">
-                    <!-- Begin:Пользовательские -->
-                    <tr>
-                        <td>
-                            <a href="/{_global_.z}/{Формат отчета}/{ЗапросID}" class="pult-link {приоритет}">
-                                {Запрос}
-                            </a>
-                        </td>
-                    </tr>
-                    <!-- End:Пользовательские -->
-                </tbody>
-            </table>
+            <div class="pult-reports-grid" id="reports-grid">
+                <!-- Begin:Пользовательские -->
+                <a href="/{_global_.z}/{Формат отчета}/{ЗапросID}" class="pult-report-card {приоритет}">
+                    <div class="pult-report-icon">📊</div>
+                    <div class="pult-report-content">
+                        <span class="pult-report-title">{Запрос}</span>
+                    </div>
+                </a>
+                <!-- End:Пользовательские -->
+            </div>
         </div>
     </div>
 
@@ -332,9 +401,14 @@ if('{_global_.role}'==='admin'||'{_global_.role}'==='boss')
 <script>
 // Add empty state if tables are empty
 document.addEventListener('DOMContentLoaded', function() {
+    // Check reports grid
+    const reportsGrid = document.getElementById('reports-grid');
+    if (reportsGrid && reportsGrid.children.length === 0) {
+        reportsGrid.innerHTML = '<div class="pult-empty" style="grid-column: 1 / -1;"><div class="pult-empty-icon">📭</div><div>Нет доступных отчетов</div></div>';
+    }
+
     // Check each table body
     const tables = [
-        {id: 'reports-body', message: 'Нет доступных отчетов'},
         {id: 'calls-body', message: 'Нет активных звонков'},
         {id: 'tasks-body', message: 'Нет задач'}
     ];

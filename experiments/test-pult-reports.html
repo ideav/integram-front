@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Pult Reports Layout</title>
+</head>
+<body>
+<style>
+    /* CSS Variables - Material Design */
+    :root {
+        --primary-color: #2563eb;
+        --primary-hover: #1d4ed8;
+        --primary-light: #3b82f6;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --border-color: #e2e8f0;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background-color: var(--background);
+        margin: 0;
+        padding: 20px;
+    }
+
+    /* Container for the dashboard */
+    .pult-container {
+        padding: 24px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Section styling */
+    .pult-section {
+        margin-bottom: 32px;
+    }
+
+    .pult-section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .pult-section-title::before {
+        content: '';
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        border-radius: 2px;
+    }
+
+    /* Card container */
+    .pult-card {
+        background-color: var(--surface);
+        border-radius: 8px;
+        box-shadow: 0 2px 1px -1px rgba(0,0,0,0.2),
+                    0 1px 1px 0 rgba(0,0,0,0.14),
+                    0 1px 3px 0 rgba(0,0,0,0.12);
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Report cards grid */
+    .pult-reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .pult-report-card {
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px 20px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: var(--shadow-sm);
+        text-decoration: none;
+    }
+
+    .pult-report-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+        border-color: var(--primary-color);
+    }
+
+    .pult-report-card.X {
+        border-left: 4px solid var(--danger-color);
+    }
+
+    .pult-report-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .pult-report-card.X .pult-report-icon {
+        background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+    }
+
+    .pult-report-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .pult-report-title {
+        color: var(--text-primary);
+        font-weight: 500;
+        font-size: 0.938rem;
+        line-height: 1.4;
+        text-decoration: none;
+        display: block;
+        word-wrap: break-word;
+    }
+
+    .pult-report-card:hover .pult-report-title {
+        color: var(--primary-color);
+    }
+
+    .pult-report-card.X:hover .pult-report-title {
+        color: var(--danger-color);
+    }
+
+    @media (max-width: 768px) {
+        .pult-reports-grid {
+            grid-template-columns: 1fr;
+            padding: 8px;
+        }
+    }
+
+    /* Empty state */
+    .pult-empty {
+        text-align: center;
+        padding: 48px 24px;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .pult-empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+</style>
+
+<div class="pult-container">
+    <!-- Пользовательские отчеты with sample data -->
+    <div class="pult-section">
+        <h2 class="pult-section-title">Пользовательские отчеты</h2>
+        <div class="pult-card">
+            <div class="pult-reports-grid" id="reports-grid">
+                <a href="#" class="pult-report-card">
+                    <div class="pult-report-icon">📊</div>
+                    <div class="pult-report-content">
+                        <span class="pult-report-title">Отчет по продажам за месяц</span>
+                    </div>
+                </a>
+                <a href="#" class="pult-report-card">
+                    <div class="pult-report-icon">📊</div>
+                    <div class="pult-report-content">
+                        <span class="pult-report-title">Анализ клиентской базы</span>
+                    </div>
+                </a>
+                <a href="#" class="pult-report-card X">
+                    <div class="pult-report-icon">📊</div>
+                    <div class="pult-report-content">
+                        <span class="pult-report-title">Критический отчет по задолженности</span>
+                    </div>
+                </a>
+                <a href="#" class="pult-report-card">
+                    <div class="pult-report-icon">📊</div>
+                    <div class="pult-report-content">
+                        <span class="pult-report-title">Статистика звонков</span>
+                    </div>
+                </a>
+                <a href="#" class="pult-report-card">
+                    <div class="pult-report-icon">📊</div>
+                    <div class="pult-report-content">
+                        <span class="pult-report-title">Отчет по выполненным задачам</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty state example -->
+    <div class="pult-section">
+        <h2 class="pult-section-title">Пример пустого состояния</h2>
+        <div class="pult-card">
+            <div class="pult-reports-grid">
+                <div class="pult-empty" style="grid-column: 1 / -1;">
+                    <div class="pult-empty-icon">📭</div>
+                    <div>Нет доступных отчетов</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
